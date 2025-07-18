@@ -1,0 +1,31 @@
+employee_id,name,age,department,salary,city,hire_date,performance_rating,years_experience,education_level
+1001,Alice Johnson,28,Engineering,75000,San Francisco,2022-03-15,4.2,5,Bachelor
+1002,Bob Smith,34,Marketing,65000,New York,2021-07-20,3.8,8,Master
+1003,Charlie Brown,29,Engineering,78000,Seattle,2022-01-10,4.5,6,Bachelor
+1004,Diana Prince,31,Sales,70000,Chicago,2020-11-05,4.0,7,Bachelor
+1005,Eve Wilson,26,Marketing,58000,Los Angeles,2023-02-28,3.9,3,Bachelor
+1006,Frank Miller,42,Engineering,95000,San Francisco,2019-06-12,4.7,15,Master
+1007,Grace Lee,35,HR,72000,New York,2020-09-18,4.1,10,Master
+1008,Henry Davis,38,Sales,82000,Chicago,2019-12-03,4.3,12,Bachelor
+1009,Ivy Chen,27,Engineering,72000,Seattle,2022-08-14,4.0,4,Master
+1010,Jack Taylor,33,Marketing,67000,Los Angeles,2021-04-22,3.7,9,Bachelor
+1011,Kate Williams,30,Engineering,80000,San Francisco,2021-10-30,4.4,7,Master
+1012,Liam Brown,25,Sales,55000,Miami,2023-01-16,3.5,2,Bachelor
+1013,Mia Garcia,36,HR,75000,New York,2020-03-08,4.2,11,Master
+1014,Noah Martinez,29,Engineering,76000,Austin,2022-05-25,4.1,5,Bachelor
+1015,Olivia Rodriguez,32,Marketing,69000,Denver,2021-09-12,3.9,8,Bachelor
+1016,Paul Anderson,40,Sales,88000,Phoenix,2019-08-07,4.5,14,Master
+1017,Quinn Thompson,28,Engineering,74000,Portland,2022-11-20,4.0,4,Bachelor
+1018,Ruby Jackson,37,HR,78000,Boston,2020-05-14,4.3,12,Master
+1019,Sam White,31,Marketing,71000,Atlanta,2021-12-01,4.1,7,Bachelor
+1020,Tina Harris,26,Sales,59000,Las Vegas,2023-03-10,3.6,3,Bachelor
+1021,Uma Clark,39,Engineering,92000,San Diego,2019-10-25,4.6,13,Master
+1022,Victor Lewis,34,Marketing,68000,Dallas,2021-06-18,3.8,9,Bachelor
+1023,Wendy Walker,28,Sales,62000,Orlando,2022-09-05,3.7,5,Bachelor
+1024,Xavier Hall,41,HR,81000,Minneapolis,2019-02-12,4.4,15,Master
+1025,Yara Allen,30,Engineering,77000,Salt Lake City,2022-04-08,4.2,6,Bachelor
+1026,Zoe Young,27,Marketing,61000,Nashville,2022-12-15,3.8,4,Bachelor
+1027,Adam King,35,Sales,84000,Cleveland,2020-07-30,4.3,10,Master
+1028,Bella Wright,32,Engineering,79000,Kansas City,2021-11-22,4.1,8,Bachelor
+1029,Carlos Lopez,29,HR,66000,San Antonio,2022-06-10,3.9,5,Bachelor
+1030,Delilah Hill,33,Marketing,70000,Pittsburgh,2021-08-25,4.0,8,Master 
