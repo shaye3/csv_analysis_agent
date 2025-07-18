@@ -346,3 +346,4 @@ class FunctionRouter:
         """
         # This would be implemented to track tool usage over time
         return {tool_name: 0 for tool_name in self._tools.keys()} 
+    
