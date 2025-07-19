@@ -54,7 +54,8 @@ class LLMManager:
             raise ValueError(f"Unsupported LLM provider: {self.config.provider}")
         
         # Create structured LLM for classification tasks
-        self._structured_llm = self._llm.with_structured_output(CSVQuestionClassification)
+        # Use function_calling method to avoid warnings with gpt-3.5-turbo
+        self._structured_llm = self._llm.with_structured_output(CSVQuestionClassification, method="function_calling")
     
     def _get_api_key(self) -> Optional[str]:
         """Get API key from environment variables."""

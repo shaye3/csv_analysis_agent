@@ -5,7 +5,7 @@ This module contains the enhanced tool management system for CSV analysis.
 """
 
 from typing import Dict, Any, List, Optional, Type
-from langchain.tools import Tool
+from langchain.tools import Tool, StructuredTool
 from pydantic import BaseModel, Field
 import pandas as pd
 from abc import ABC, abstractmethod
@@ -13,6 +13,20 @@ import time
 
 from models.config import ToolConfig
 from models.schemas import ToolExecutionResult
+
+# Import visualization components
+try:
+    from utils.visualizer import CSVVisualizer
+    VISUALIZATION_AVAILABLE = True
+except ImportError:
+    VISUALIZATION_AVAILABLE = False
+
+
+class VisualizationInput(BaseModel):
+    """Input schema for visualization tool."""
+    analysis_type: str = Field(description="Type of analysis: 'distribution', 'sum', 'average', or 'count'")
+    measure: str = Field(default="", description="Column name for measure (required for distribution, sum, average)")
+    dimension: str = Field(default="", description="Column name for dimension (required for sum, average, count)")
 
 
 class CSVAnalysisTool(BaseModel, ABC):
@@ -165,6 +179,175 @@ class GetValueCountsTool(CSVAnalysisTool):
         return result_text
 
 
+class GetAnalyticsClassificationTool(CSVAnalysisTool):
+    """Tool to get analytics classification (measures vs dimensions)."""
+    
+    name: str = "get_analytics_classification"
+    description: str = "Get analytics classification showing which columns are measures vs dimensions for business intelligence analysis"
+    
+    def execute(self) -> str:
+        """Get analytics classification summary."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        try:
+            analytics_summary = self.csv_loader.get_analytics_summary()
+            
+            result = f"📊 Analytics Classification Summary:\n"
+            result += f"═══════════════════════════════════════\n\n"
+            result += f"📈 MEASURES ({analytics_summary['measure_count']}):\n"
+            result += f"   • {', '.join(analytics_summary['measures'])}\n\n"
+            result += f"📂 DIMENSIONS ({analytics_summary['dimension_count']}):\n"
+            result += f"   • {', '.join(analytics_summary['dimensions'])}\n\n"
+            result += f"💡 {analytics_summary['summary']}\n\n"
+            result += f"🎯 Use measures for: aggregation, sum, average, min, max\n"
+            result += f"🔍 Use dimensions for: grouping, filtering, categorizing"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error getting analytics classification: {str(e)}"
+
+
+class ListAvailableMeasuresTool(CSVAnalysisTool):
+    """Tool to list available measures."""
+    
+    name: str = "list_measures"
+    description: str = "List all available measures (numerical fields for aggregation) in the dataset"
+    
+    def execute(self) -> str:
+        """Get list of available measures."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        try:
+            measures = self.csv_loader.get_measures()
+            
+            if not measures:
+                return "No measures found in the dataset. All columns appear to be dimensions."
+            
+            result = f"📈 Available Measures ({len(measures)}):\n"
+            result += "═══════════════════════════════════\n\n"
+            
+            for measure in measures:
+                column_info = self.csv_loader.get_column_info(measure)
+                if column_info:
+                    result += f"• {measure} ({column_info.dtype})\n"
+                    result += f"  📝 {column_info.description}\n"
+                    result += f"  📊 {column_info.unique_count} unique values\n\n"
+            
+            result += "💡 These fields can be used for: sum, average, min, max, distribution analysis"
+            return result
+            
+        except Exception as e:
+            return f"Error listing measures: {str(e)}"
+
+
+class ListAvailableDimensionsTool(CSVAnalysisTool):
+    """Tool to list available dimensions."""
+    
+    name: str = "list_dimensions"
+    description: str = "List all available dimensions (categorical fields for grouping) in the dataset"
+    
+    def execute(self) -> str:
+        """Get list of available dimensions."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        try:
+            dimensions = self.csv_loader.get_dimensions()
+            
+            if not dimensions:
+                return "No dimensions found in the dataset. All columns appear to be measures."
+            
+            result = f"📂 Available Dimensions ({len(dimensions)}):\n"
+            result += "═══════════════════════════════════════\n\n"
+            
+            for dimension in dimensions:
+                column_info = self.csv_loader.get_column_info(dimension)
+                if column_info:
+                    result += f"• {dimension} ({column_info.dtype})\n"
+                    result += f"  📝 {column_info.description}\n"
+                    result += f"  📊 {column_info.unique_count} unique values\n\n"
+            
+            result += "💡 These fields can be used for: grouping, filtering, categorizing, count analysis"
+            return result
+            
+        except Exception as e:
+            return f"Error listing dimensions: {str(e)}"
+
+
+class CreateVisualizationTool(CSVAnalysisTool):
+    """Tool to create data visualizations."""
+    
+    name: str = "create_visualization"
+    description: str = """Create data visualizations. Parameters:
+    - analysis_type: 'distribution', 'sum', 'average', or 'count'
+    - measure: column name (required for distribution, sum, average)
+    - dimension: column name (required for sum, average, count)
+    
+    Examples:
+    - create_visualization(analysis_type='distribution', measure='salary')
+    - create_visualization(analysis_type='sum', measure='salary', dimension='department')
+    - create_visualization(analysis_type='count', dimension='department')"""
+    
+    def execute(self, analysis_type: str, measure: str = "", dimension: str = "") -> str:
+        """Create a visualization."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        if not VISUALIZATION_AVAILABLE:
+            return "Visualization functionality is not available. Please install matplotlib and seaborn."
+        
+        # Validate analysis type
+        valid_types = ["distribution", "sum", "average", "count"]
+        if analysis_type not in valid_types:
+            return f"Invalid analysis_type '{analysis_type}'. Must be one of: {', '.join(valid_types)}"
+        
+        try:
+            df = self.csv_loader.get_dataframe()
+            visualizer = CSVVisualizer()
+            
+            # Create the visualization
+            result = visualizer.analyze_and_plot(
+                dataframe=df,
+                dimension=dimension,
+                measure=measure,
+                analysis_type=analysis_type,
+                show_plot=True
+            )
+            
+            # Format the response
+            response = f"✅ Successfully created {analysis_type} visualization!\n\n"
+            response += f"📊 Analysis Type: {analysis_type.title()}\n"
+            
+            if measure:
+                response += f"📈 Measure: {measure}\n"
+            if dimension:
+                response += f"📂 Dimension: {dimension}\n"
+            
+            if 'statistics' in result:
+                stats = result['statistics']
+                response += f"\n📊 Statistics:\n"
+                response += f"   • Mean: {stats.get('mean', 'N/A'):.2f}\n"
+                response += f"   • Median: {stats.get('median', 'N/A'):.2f}\n"
+                response += f"   • Min: {stats.get('min', 'N/A')}\n"
+                response += f"   • Max: {stats.get('max', 'N/A')}\n"
+            
+            if 'summary' in result:
+                summary = result['summary']
+                response += f"\n📈 Summary:\n"
+                for key, value in summary.items():
+                    response += f"   • {key.replace('_', ' ').title()}: {value}\n"
+            
+            response += f"\n💡 The chart has been displayed. You can now ask for more analysis or create additional visualizations!"
+            
+            return response
+            
+        except Exception as e:
+            return f"Error creating visualization: {str(e)}\n\nMake sure you're using valid column names. Use 'list_measures' and 'list_dimensions' to see available options."
+
+
 class ToolManager:
     """
     Enhanced tool manager for CSV analysis tools.
@@ -195,7 +378,11 @@ class ToolManager:
             GetColumnInfoTool(csv_loader=self.csv_loader),
             SearchDataTool(csv_loader=self.csv_loader),
             GetBasicStatsTool(csv_loader=self.csv_loader),
-            GetValueCountsTool(csv_loader=self.csv_loader)
+            GetValueCountsTool(csv_loader=self.csv_loader),
+            GetAnalyticsClassificationTool(csv_loader=self.csv_loader),
+            ListAvailableMeasuresTool(csv_loader=self.csv_loader),
+            ListAvailableDimensionsTool(csv_loader=self.csv_loader),
+            CreateVisualizationTool(csv_loader=self.csv_loader)
         ]
         
         for tool in default_tools:
@@ -212,14 +399,27 @@ class ToolManager:
         self._tools[tool.name] = tool
         self._execution_stats[tool.name] = 0
         
-        def tool_func(*args, **kwargs):
-            return self._execute_tool_with_tracking(tool.name, *args, **kwargs)
-        
-        langchain_tool = Tool(
-            name=tool.name,
-            description=tool.description,
-            func=tool_func
-        )
+        # Special handling for create_visualization tool (multi-parameter)
+        if tool.name == "create_visualization":
+            def visualization_func(analysis_type: str, measure: str = "", dimension: str = "") -> str:
+                return self._execute_tool_with_tracking(tool.name, analysis_type, measure, dimension)
+            
+            langchain_tool = StructuredTool.from_function(
+                name=tool.name,
+                description=tool.description,
+                func=visualization_func,
+                args_schema=VisualizationInput
+            )
+        else:
+            # Regular single-parameter tools
+            def tool_func(*args, **kwargs):
+                return self._execute_tool_with_tracking(tool.name, *args, **kwargs)
+            
+            langchain_tool = Tool(
+                name=tool.name,
+                description=tool.description,
+                func=tool_func
+            )
         
         self._langchain_tools.append(langchain_tool)
     

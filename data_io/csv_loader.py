@@ -161,7 +161,8 @@ class CSVLoader:
         """Generate intelligent column description and classification using LLM."""
         try:
             # Create structured LLM that returns our analysis model
-            structured_llm = self.llm.with_structured_output(ColumnAnalysisResult)
+            # Use function_calling method to avoid warnings with gpt-3.5-turbo
+            structured_llm = self.llm.with_structured_output(ColumnAnalysisResult, method="function_calling")
             
             # Prepare context about the entire dataset
             dataset_context = self._prepare_dataset_context()
@@ -307,7 +308,8 @@ INSTRUCTIONS:
         if not self.is_loaded():
             return pd.DataFrame()
         
-        search_columns = columns if columns else self._dataframe.select_dtypes(include=['object']).columns.tolist()
+        # Search all columns if none specified, not just text columns
+        search_columns = columns if columns else list(self._dataframe.columns)
         
         mask = pd.Series([False] * len(self._dataframe))
         

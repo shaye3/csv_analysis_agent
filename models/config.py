@@ -46,7 +46,8 @@ class ToolConfig(BaseModel):
     """Configuration for tool settings."""
     enabled_tools: List[str] = Field(default_factory=lambda: [
         "get_data_summary", "get_column_info", "search_data", 
-        "get_basic_stats", "get_value_counts"
+        "get_basic_stats", "get_value_counts", "get_analytics_classification",
+        "list_measures", "list_dimensions", "create_visualization"
     ])
     max_search_results: int = Field(default=10, gt=0)
     enable_custom_tools: bool = True
