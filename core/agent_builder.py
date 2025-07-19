@@ -36,7 +36,8 @@ class AgentBuilder:
         
         # Initialize core components
         self.llm_manager = LLMManager(config.llm)
-        self.csv_loader = CSVLoader()
+        # Pass LLM instance to CSVLoader for intelligent column descriptions
+        self.csv_loader = CSVLoader(llm=self.llm_manager.get_llm())
         self.memory_manager = MemoryManagerFactory.create_memory_manager(config.memory)
         self.tool_manager = ToolManager(config.tools, self.csv_loader)
         self.query_context = QueryContext(self.csv_loader)

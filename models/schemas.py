@@ -10,6 +10,19 @@ from datetime import datetime
 from enum import Enum
 
 
+class ColumnType(str, Enum):
+    """Classification of column types for analytics."""
+    MEASURE = "measure"
+    DIMENSION = "dimension"
+
+
+class ColumnAnalysisResult(BaseModel):
+    """Schema for LLM column analysis result."""
+    description: str = Field(description="Clear description of what the column represents")
+    column_type: ColumnType = Field(description="Classification as measure or dimension") 
+    rationale: str = Field(description="Explanation for the measure/dimension classification")
+
+
 class CSVQuestionClassification(BaseModel):
     """Pydantic model for CSV question classification response."""
     
@@ -29,6 +42,7 @@ class ColumnInfo(BaseModel):
     unique_count: int
     sample_values: List[Any]
     description: str
+    column_type: ColumnType
 
 
 class DatasetMetadata(BaseModel):
