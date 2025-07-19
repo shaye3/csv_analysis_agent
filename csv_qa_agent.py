@@ -29,7 +29,7 @@ class CSVQAAgent:
     def __init__(
         self,
         openai_api_key: Optional[str] = None,
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-4o-mini",
         temperature: float = 0.1,
         memory_type: str = "buffer"
     ):

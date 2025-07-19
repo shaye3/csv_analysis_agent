@@ -32,7 +32,7 @@ app = typer.Typer(help="CSV Analysis Agent - Intelligent CSV Analysis Assistant"
 def interactive(
     csv_file: Optional[str] = typer.Option(None, "--csv", "-c", help="CSV file to load"),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="OpenAI API key"),
-    model: str = typer.Option("gpt-3.5-turbo", "--model", "-m", help="LLM model to use"),
+    model: str = typer.Option("gpt-4o-mini", "--model", "-m", help="LLM model to use"),
     temperature: float = typer.Option(0.1, "--temperature", "-t", help="LLM temperature"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output")
 ):
@@ -81,7 +81,7 @@ def analyze(
     csv_file: str = typer.Argument(..., help="CSV file to analyze"),
     question: str = typer.Argument(..., help="Question to ask about the data"),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="OpenAI API key"),
-    model: str = typer.Option("gpt-3.5-turbo", "--model", "-m", help="LLM model to use"),
+    model: str = typer.Option("gpt-4o-mini", "--model", "-m", help="LLM model to use"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output")
 ):
     """Analyze CSV file with a single question."""

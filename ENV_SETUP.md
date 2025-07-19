@@ -10,7 +10,7 @@
 OPENAI_API_KEY=your_actual_openai_api_key_here
 
 # Optional: Default model to use
-DEFAULT_MODEL=gpt-3.5-turbo
+DEFAULT_MODEL=gpt-4o-mini
 
 # Optional: Default temperature setting  
 DEFAULT_TEMPERATURE=0.1

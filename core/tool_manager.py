@@ -14,19 +14,19 @@ import time
 from models.config import ToolConfig
 from models.schemas import ToolExecutionResult
 
-# Import visualization components
-try:
-    from utils.visualizer import CSVVisualizer
-    VISUALIZATION_AVAILABLE = True
-except ImportError:
-    VISUALIZATION_AVAILABLE = False
+# Removed visualization components for simplified interface
 
 
-class VisualizationInput(BaseModel):
-    """Input schema for visualization tool."""
-    analysis_type: str = Field(description="Type of analysis: 'distribution', 'sum', 'average', or 'count'")
-    measure: str = Field(default="", description="Column name for measure (required for distribution, sum, average)")
-    dimension: str = Field(default="", description="Column name for dimension (required for sum, average, count)")
+class GroupAggregateInput(BaseModel):
+    """Input schema for group and aggregate tool."""
+    group_by_columns: str = Field(description="Comma-separated list of columns to group by")
+    aggregations: str = Field(description="Comma-separated list in format 'column:operation' where operation is sum/average/count_distinct")
+
+
+class SortDataInput(BaseModel):
+    """Input schema for sort data tool."""
+    sort_columns: str = Field(description="Comma-separated list of columns to sort by")
+    sort_orders: str = Field(description="Comma-separated list of sort orders ('asc' or 'desc') matching the sort columns", default="asc")
 
 
 class CSVAnalysisTool(BaseModel, ABC):
@@ -72,51 +72,303 @@ class GetColumnInfoTool(CSVAnalysisTool):
         
         column_info = self.csv_loader.get_column_info(column_name)
         if column_info is None:
-            available_columns = self.csv_loader.get_metadata().get('columns', [])
+            available_columns = self.csv_loader.get_metadata().columns
             return f"Column '{column_name}' not found. Available columns: {', '.join(available_columns)}"
         
         info_parts = [
-            f"Column: {column_info['name']}",
-            f"Description: {column_info['description']}",
-            f"Data Type: {column_info['dtype']}",
-            f"Missing Values: {column_info['null_count']} ({column_info['null_count']/self.csv_loader.get_dataframe().shape[0]*100:.1f}%)",
-            f"Unique Values: {column_info['unique_count']}",
-            f"Sample Values: {', '.join(map(str, column_info['sample_values'][:5]))}"
+            f"Column: {column_info.name}",
+            f"Description: {column_info.description}",
+            f"Data Type: {column_info.dtype}",
+            f"Missing Values: {column_info.null_count} ({column_info.null_count/self.csv_loader.get_dataframe().shape[0]*100:.1f}%)",
+            f"Unique Values: {column_info.unique_count}",
+            f"Sample Values: {', '.join(map(str, column_info.sample_values[:5]))}"
         ]
         
         return "\n".join(info_parts)
 
 
-class SearchDataTool(CSVAnalysisTool):
-    """Tool to search for data in CSV."""
+
+
+
+class SortDataTool(CSVAnalysisTool):
+    """Tool to sort CSV data by specified columns."""
     
-    name: str = "search_data"
-    description: str = "Search for rows containing specific text or values. Takes search_query as parameter and optionally column_names to limit search scope."
+    name: str = "sort_data"
+    description: str = """Sort CSV data by one or more columns with specified order.
+    Parameters: 
+    - sort_columns (required): comma-separated list of columns to sort by
+    - sort_orders (optional): comma-separated list of 'asc' or 'desc' orders (defaults to 'asc' if not specified)
+    Examples: 
+    - sort_data('salary', 'desc') - sort by salary descending
+    - sort_data('department,salary', 'asc,desc') - sort by department ascending, then salary descending
+    - sort_data('age,salary,name', 'desc,desc,asc') - sort by age desc, salary desc, name asc"""
     
-    def execute(self, search_query: str, column_names: Optional[str] = None) -> str:
-        """Search data in CSV."""
+    def execute(self, sort_columns: str, sort_orders: str = "asc") -> str:
+        """Sort data by specified columns."""
         if not self.validate_csv_loaded():
             return "No CSV data is currently loaded. Please load a CSV file first."
         
-        columns = None
-        if column_names:
-            columns = [col.strip() for col in column_names.split(',')]
+        df = self.csv_loader.get_dataframe()
         
-        results = self.csv_loader.search_data(search_query, columns)
+        # Parse sort columns
+        if not sort_columns.strip():
+            return "Please provide columns to sort by (comma-separated list)."
         
-        if results.empty:
-            return f"No rows found containing '{search_query}'"
+        sort_cols = [col.strip() for col in sort_columns.split(',')]
+        sort_cols = [col for col in sort_cols if col]  # Remove empty values
         
-        max_rows = 10
-        if len(results) > max_rows:
-            result_text = f"Found {len(results)} rows containing '{search_query}'. Showing first {max_rows}:\n\n"
-            result_text += results.head(max_rows).to_string(index=False)
-            result_text += f"\n\n... and {len(results) - max_rows} more rows."
-        else:
-            result_text = f"Found {len(results)} rows containing '{search_query}':\n\n"
-            result_text += results.to_string(index=False)
+        if not sort_cols:
+            return "No valid sort columns provided."
         
-        return result_text
+        # Validate sort columns exist
+        missing_cols = [col for col in sort_cols if col not in df.columns]
+        if missing_cols:
+            available_columns = ', '.join(df.columns)
+            return f"Sort columns not found: {', '.join(missing_cols)}. Available columns: {available_columns}"
+        
+        # Parse sort orders
+        sort_order_list = [order.strip().lower() for order in sort_orders.split(',')]
+        sort_order_list = [order for order in sort_order_list if order]  # Remove empty values
+        
+        # Validate sort orders
+        valid_orders = ['asc', 'desc']
+        invalid_orders = [order for order in sort_order_list if order not in valid_orders]
+        if invalid_orders:
+            return f"Invalid sort orders: {', '.join(invalid_orders)}. Use 'asc' or 'desc'."
+        
+        # If fewer sort orders than columns, pad with 'asc'
+        while len(sort_order_list) < len(sort_cols):
+            sort_order_list.append('asc')
+        
+        # Convert to boolean list for pandas (True = ascending, False = descending)
+        ascending_list = [order == 'asc' for order in sort_order_list[:len(sort_cols)]]
+        
+        # Perform the sorting
+        try:
+            sorted_df = df.sort_values(by=sort_cols, ascending=ascending_list)
+            
+            if sorted_df.empty:
+                return "No data found after sorting."
+            
+            # Format the results
+            result_count = len(sorted_df)
+            max_rows = 50
+            
+            # Create sort description
+            sort_desc = []
+            for col, order in zip(sort_cols, sort_order_list[:len(sort_cols)]):
+                sort_desc.append(f"{col} ({order})")
+            
+            result_text = f"Data sorted by: {', '.join(sort_desc)}\n"
+            result_text += f"Total rows: {result_count}\n\n"
+            
+            if result_count > max_rows:
+                result_text += sorted_df.head(max_rows).to_string(index=False)
+                result_text += f"\n\n... and {result_count - max_rows} more rows."
+            else:
+                result_text += sorted_df.to_string(index=False)
+            
+            # Add some insights about the sorting
+            if len(sort_cols) == 1 and pd.api.types.is_numeric_dtype(df[sort_cols[0]]):
+                col = sort_cols[0]
+                if sort_order_list[0] == 'desc':
+                    result_text += f"\n\nHighest {col}: {sorted_df[col].iloc[0]}"
+                    result_text += f"\nLowest {col}: {sorted_df[col].iloc[-1]}"
+                else:
+                    result_text += f"\n\nLowest {col}: {sorted_df[col].iloc[0]}"
+                    result_text += f"\nHighest {col}: {sorted_df[col].iloc[-1]}"
+            
+            return result_text
+            
+        except Exception as e:
+            return f"Error sorting data: {str(e)}"
+
+
+class FilterDataTool(CSVAnalysisTool):
+    """Tool to filter CSV data by column values."""
+    
+    name: str = "filter_data"
+    description: str = """Filter CSV data by specific column values. 
+    Parameters: column_name (required), values (required - comma-separated list of values to filter by).
+    Examples: filter_data('department', 'Engineering,Sales'), filter_data('status', 'active,pending')"""
+    
+    def execute(self, column_name: str, values: str) -> str:
+        """Filter data by column values."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        df = self.csv_loader.get_dataframe()
+        
+        if column_name not in df.columns:
+            available_columns = ', '.join(df.columns)
+            return f"Column '{column_name}' not found. Available columns: {available_columns}"
+        
+        # Parse the values list
+        if not values.strip():
+            return "Please provide values to filter by (comma-separated list)."
+        
+        filter_values = [value.strip() for value in values.split(',')]
+        filter_values = [value for value in filter_values if value]  # Remove empty values
+        
+        if not filter_values:
+            return "No valid filter values provided."
+        
+        # Perform the filtering
+        try:
+            # Convert DataFrame column to string for comparison to handle mixed types
+            filtered_df = df[df[column_name].astype(str).isin([str(v) for v in filter_values])]
+            
+            if filtered_df.empty:
+                unique_values = df[column_name].unique()[:10]  # Show first 10 unique values
+                return f"No rows found with {column_name} in {filter_values}.\nAvailable values in '{column_name}': {', '.join(map(str, unique_values))}"
+            
+            # Format the results
+            max_rows = 20
+            result_count = len(filtered_df)
+            
+            result_text = f"Found {result_count} rows where '{column_name}' is in {filter_values}:\n\n"
+            
+            if result_count > max_rows:
+                result_text += filtered_df.head(max_rows).to_string(index=False)
+                result_text += f"\n\n... and {result_count - max_rows} more rows."
+            else:
+                result_text += filtered_df.to_string(index=False)
+            
+            return result_text
+            
+        except Exception as e:
+            return f"Error filtering data: {str(e)}"
+
+
+class GroupAndAggregateTool(CSVAnalysisTool):
+    """Tool to group data by columns and perform aggregations."""
+    
+    name: str = "group_and_aggregate"
+    description: str = """Group data by specified columns and perform aggregations on other columns.
+    Parameters: 
+    - group_by_columns (required): comma-separated list of columns to group by
+    - aggregations (required): comma-separated list in format 'column:operation' where operation is sum/average/count_distinct
+    Examples: 
+    - group_and_aggregate('department', 'salary:average,age:average')
+    - group_and_aggregate('department,city', 'salary:sum,employee_id:count_distinct')
+    - group_and_aggregate('education_level', 'salary:average,years_experience:average,employee_id:count_distinct')"""
+    
+    def execute(self, group_by_columns: str, aggregations: str) -> str:
+        """Group data and perform aggregations."""
+        if not self.validate_csv_loaded():
+            return "No CSV data is currently loaded. Please load a CSV file first."
+        
+        df = self.csv_loader.get_dataframe()
+        
+        # Parse group by columns
+        if not group_by_columns.strip():
+            return "Please provide columns to group by (comma-separated list)."
+        
+        group_cols = [col.strip() for col in group_by_columns.split(',')]
+        group_cols = [col for col in group_cols if col]  # Remove empty values
+        
+        if not group_cols:
+            return "No valid group by columns provided."
+        
+        # Validate group by columns exist
+        missing_cols = [col for col in group_cols if col not in df.columns]
+        if missing_cols:
+            available_columns = ', '.join(df.columns)
+            return f"Group by columns not found: {', '.join(missing_cols)}. Available columns: {available_columns}"
+        
+        # Parse aggregations
+        if not aggregations.strip():
+            return "Please provide aggregations in format 'column:operation' (comma-separated list)."
+        
+        agg_dict = {}
+        agg_descriptions = []
+        
+        try:
+            agg_specs = [spec.strip() for spec in aggregations.split(',')]
+            for spec in agg_specs:
+                if ':' not in spec:
+                    return f"Invalid aggregation format '{spec}'. Use 'column:operation' format."
+                
+                col, operation = spec.split(':', 1)
+                col = col.strip()
+                operation = operation.strip().lower()
+                
+                if col not in df.columns:
+                    available_columns = ', '.join(df.columns)
+                    return f"Aggregation column '{col}' not found. Available columns: {available_columns}"
+                
+                if operation == 'sum':
+                    if not pd.api.types.is_numeric_dtype(df[col]):
+                        return f"Cannot sum non-numeric column '{col}'. Use count_distinct instead."
+                    agg_dict[col] = 'sum'
+                    agg_descriptions.append(f"Sum of {col}")
+                    
+                elif operation == 'average' or operation == 'avg':
+                    if not pd.api.types.is_numeric_dtype(df[col]):
+                        return f"Cannot average non-numeric column '{col}'. Use count_distinct instead."
+                    agg_dict[col] = 'mean'
+                    agg_descriptions.append(f"Average of {col}")
+                    
+                elif operation == 'count_distinct' or operation == 'count':
+                    agg_dict[col] = 'nunique'
+                    agg_descriptions.append(f"Count distinct of {col}")
+                    
+                else:
+                    return f"Invalid operation '{operation}'. Use: sum, average, or count_distinct."
+        
+        except Exception as e:
+            return f"Error parsing aggregations: {str(e)}"
+        
+        if not agg_dict:
+            return "No valid aggregations provided."
+        
+        # Perform the groupby operation
+        try:
+            grouped = df.groupby(group_cols).agg(agg_dict).reset_index()
+            
+            # Rename columns to be more descriptive
+            column_renames = {}
+            for col, operation in agg_dict.items():
+                if operation == 'sum':
+                    column_renames[col] = f"{col}_sum"
+                elif operation == 'mean':
+                    column_renames[col] = f"{col}_avg"
+                elif operation == 'nunique':
+                    column_renames[col] = f"{col}_count_distinct"
+            
+            grouped = grouped.rename(columns=column_renames)
+            
+            if grouped.empty:
+                return "No data found after grouping. Check your column names and values."
+            
+            # Format the results
+            result_count = len(grouped)
+            max_rows = 50
+            
+            result_text = f"Grouped by: {', '.join(group_cols)}\n"
+            result_text += f"Aggregations: {', '.join(agg_descriptions)}\n"
+            result_text += f"Found {result_count} groups:\n\n"
+            
+            if result_count > max_rows:
+                result_text += grouped.head(max_rows).to_string(index=False, float_format='%.2f')
+                result_text += f"\n\n... and {result_count - max_rows} more groups."
+            else:
+                result_text += grouped.to_string(index=False, float_format='%.2f')
+            
+            # Add summary statistics
+            if result_count > 1:
+                result_text += f"\n\nSUMMARY STATISTICS:"
+                for col in grouped.columns:
+                    if col not in group_cols and pd.api.types.is_numeric_dtype(grouped[col]):
+                        min_val = grouped[col].min()
+                        max_val = grouped[col].max()
+                        avg_val = grouped[col].mean()
+                        result_text += f"\n• {col}: min={min_val:.2f}, max={max_val:.2f}, avg={avg_val:.2f}"
+            
+            return result_text
+            
+        except Exception as e:
+            return f"Error performing groupby operation: {str(e)}"
 
 
 class GetBasicStatsTool(CSVAnalysisTool):
@@ -277,75 +529,7 @@ class ListAvailableDimensionsTool(CSVAnalysisTool):
             return f"Error listing dimensions: {str(e)}"
 
 
-class CreateVisualizationTool(CSVAnalysisTool):
-    """Tool to create data visualizations."""
-    
-    name: str = "create_visualization"
-    description: str = """Create data visualizations. Parameters:
-    - analysis_type: 'distribution', 'sum', 'average', or 'count'
-    - measure: column name (required for distribution, sum, average)
-    - dimension: column name (required for sum, average, count)
-    
-    Examples:
-    - create_visualization(analysis_type='distribution', measure='salary')
-    - create_visualization(analysis_type='sum', measure='salary', dimension='department')
-    - create_visualization(analysis_type='count', dimension='department')"""
-    
-    def execute(self, analysis_type: str, measure: str = "", dimension: str = "") -> str:
-        """Create a visualization."""
-        if not self.validate_csv_loaded():
-            return "No CSV data is currently loaded. Please load a CSV file first."
-        
-        if not VISUALIZATION_AVAILABLE:
-            return "Visualization functionality is not available. Please install matplotlib and seaborn."
-        
-        # Validate analysis type
-        valid_types = ["distribution", "sum", "average", "count"]
-        if analysis_type not in valid_types:
-            return f"Invalid analysis_type '{analysis_type}'. Must be one of: {', '.join(valid_types)}"
-        
-        try:
-            df = self.csv_loader.get_dataframe()
-            visualizer = CSVVisualizer()
-            
-            # Create the visualization
-            result = visualizer.analyze_and_plot(
-                dataframe=df,
-                dimension=dimension,
-                measure=measure,
-                analysis_type=analysis_type,
-                show_plot=True
-            )
-            
-            # Format the response
-            response = f"✅ Successfully created {analysis_type} visualization!\n\n"
-            response += f"📊 Analysis Type: {analysis_type.title()}\n"
-            
-            if measure:
-                response += f"📈 Measure: {measure}\n"
-            if dimension:
-                response += f"📂 Dimension: {dimension}\n"
-            
-            if 'statistics' in result:
-                stats = result['statistics']
-                response += f"\n📊 Statistics:\n"
-                response += f"   • Mean: {stats.get('mean', 'N/A'):.2f}\n"
-                response += f"   • Median: {stats.get('median', 'N/A'):.2f}\n"
-                response += f"   • Min: {stats.get('min', 'N/A')}\n"
-                response += f"   • Max: {stats.get('max', 'N/A')}\n"
-            
-            if 'summary' in result:
-                summary = result['summary']
-                response += f"\n📈 Summary:\n"
-                for key, value in summary.items():
-                    response += f"   • {key.replace('_', ' ').title()}: {value}\n"
-            
-            response += f"\n💡 The chart has been displayed. You can now ask for more analysis or create additional visualizations!"
-            
-            return response
-            
-        except Exception as e:
-            return f"Error creating visualization: {str(e)}\n\nMake sure you're using valid column names. Use 'list_measures' and 'list_dimensions' to see available options."
+# Visualization tool removed for simplified interface
 
 
 class ToolManager:
@@ -376,13 +560,13 @@ class ToolManager:
         default_tools = [
             GetDataSummaryTool(csv_loader=self.csv_loader),
             GetColumnInfoTool(csv_loader=self.csv_loader),
-            SearchDataTool(csv_loader=self.csv_loader),
+            SortDataTool(csv_loader=self.csv_loader),
+            FilterDataTool(csv_loader=self.csv_loader),
+            GroupAndAggregateTool(csv_loader=self.csv_loader),
             GetBasicStatsTool(csv_loader=self.csv_loader),
-            GetValueCountsTool(csv_loader=self.csv_loader),
             GetAnalyticsClassificationTool(csv_loader=self.csv_loader),
             ListAvailableMeasuresTool(csv_loader=self.csv_loader),
-            ListAvailableDimensionsTool(csv_loader=self.csv_loader),
-            CreateVisualizationTool(csv_loader=self.csv_loader)
+            ListAvailableDimensionsTool(csv_loader=self.csv_loader)
         ]
         
         for tool in default_tools:
@@ -399,19 +583,29 @@ class ToolManager:
         self._tools[tool.name] = tool
         self._execution_stats[tool.name] = 0
         
-        # Special handling for create_visualization tool (multi-parameter)
-        if tool.name == "create_visualization":
-            def visualization_func(analysis_type: str, measure: str = "", dimension: str = "") -> str:
-                return self._execute_tool_with_tracking(tool.name, analysis_type, measure, dimension)
+        # Special handling for multi-parameter tools
+        if tool.name == "group_and_aggregate":
+            def group_aggregate_func(group_by_columns: str, aggregations: str) -> str:
+                return self._execute_tool_with_tracking(tool.name, group_by_columns, aggregations)
             
             langchain_tool = StructuredTool.from_function(
                 name=tool.name,
                 description=tool.description,
-                func=visualization_func,
-                args_schema=VisualizationInput
+                func=group_aggregate_func,
+                args_schema=GroupAggregateInput
+            )
+        elif tool.name == "sort_data":
+            def sort_data_func(sort_columns: str, sort_orders: str = "asc") -> str:
+                return self._execute_tool_with_tracking(tool.name, sort_columns, sort_orders)
+            
+            langchain_tool = StructuredTool.from_function(
+                name=tool.name,
+                description=tool.description,
+                func=sort_data_func,
+                args_schema=SortDataInput
             )
         else:
-            # Regular single-parameter tools
+            # All other tools use regular single-parameter handling
             def tool_func(*args, **kwargs):
                 return self._execute_tool_with_tracking(tool.name, *args, **kwargs)
             

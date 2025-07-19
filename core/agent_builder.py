@@ -42,6 +42,9 @@ class AgentBuilder:
         self.tool_manager = ToolManager(config.tools, self.csv_loader)
         self.query_context = QueryContext(self.csv_loader)
         
+        # Store comprehensive column context for intelligent query processing
+        self._column_context = ""
+        
         # Agent components
         self.agent = None
         self.agent_executor = None
@@ -93,6 +96,8 @@ IMPORTANT RULES:
 5. Be precise and factual - only state what you can verify from the actual data
 6. If you don't have enough information to answer a question, say so and suggest what data would be needed
 
+{column_context}
+
 TOOLS AVAILABLE:
 {tool_descriptions}
 
@@ -102,13 +107,22 @@ CONVERSATION GUIDELINES:
 - Provide clear, concise answers with specific data from the CSV
 - When appropriate, suggest additional analysis that might be helpful
 - Always validate that data exists before making claims about it
+- Use the column context above to make intelligent tool choices and parameters
+- Always reference exact column names and available values from the context
+- Be persistent in finding the answer - use multiple tools if needed to get complete information
 
 Remember: You are an expert data analyst who only works with the provided CSV data. Stay focused on helping users understand their specific dataset."""
         
         # Add tool descriptions
         tool_descriptions = self._create_tool_usage_prompt()
         
-        return base_prompt.format(tool_descriptions=tool_descriptions)
+        # Include column context if available
+        column_context = self._column_context if self._column_context else "No CSV data currently loaded."
+        
+        return base_prompt.format(
+            tool_descriptions=tool_descriptions,
+            column_context=column_context
+        )
     
     def _create_tool_usage_prompt(self) -> str:
         """Create a prompt describing available tools."""
@@ -160,7 +174,20 @@ Remember: You are an expert data analyst who only works with the provided CSV da
         
         # Check if question is CSV-related
         csv_context = self.query_context.get_context_for_classification()
-        classification = self.llm_manager.classify_question(question, csv_context)
+        
+        # Get recent conversation history for context
+        conversation_history = ""
+        recent_messages = self.memory_manager.get_langchain_memory().chat_memory.messages[-4:]  # Last 2 exchanges
+        if recent_messages:
+            history_parts = []
+            for i in range(0, len(recent_messages), 2):
+                if i + 1 < len(recent_messages):
+                    human_msg = recent_messages[i].content if hasattr(recent_messages[i], 'content') else str(recent_messages[i])
+                    ai_msg = recent_messages[i + 1].content if hasattr(recent_messages[i + 1], 'content') else str(recent_messages[i + 1])
+                    history_parts.append(f"Human: {human_msg}\nAssistant: {ai_msg}")
+            conversation_history = "\n\n".join(history_parts)
+        
+        classification = self.llm_manager.classify_question(question, csv_context, conversation_history)
         
         if not classification.is_csv_related:
             return QueryResponse(
@@ -241,4 +268,15 @@ Remember: You are an expert data analyst who only works with the provided CSV da
         if not self.csv_loader.is_loaded():
             return ["Please load a CSV file first to get question suggestions."]
         
-        return self.query_context.suggest_questions() 
+        return self.query_context.suggest_questions()
+    
+    def set_column_context(self, column_context: str) -> None:
+        """
+        Set comprehensive column context for intelligent query processing.
+        
+        Args:
+            column_context (str): Complete context about all CSV columns
+        """
+        self._column_context = column_context
+        # Rebuild agent with new context
+        self._initialize_agent() 

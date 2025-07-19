@@ -27,7 +27,7 @@ class MemoryType(str, Enum):
 class LLMConfig(BaseModel):
     """Configuration for LLM settings."""
     provider: LLMProvider = LLMProvider.OPENAI
-    model_name: str = Field(default_factory=lambda: os.getenv("DEFAULT_MODEL", "gpt-3.5-turbo"))
+    model_name: str = Field(default_factory=lambda: os.getenv("DEFAULT_MODEL", "gpt-4o-mini"))
     temperature: float = Field(default_factory=lambda: float(os.getenv("DEFAULT_TEMPERATURE", "0.1")), ge=0.0, le=1.0)
     max_tokens: Optional[int] = None
     api_key: Optional[str] = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
@@ -37,17 +37,16 @@ class LLMConfig(BaseModel):
 class MemoryConfig(BaseModel):
     """Configuration for memory settings."""
     memory_type: MemoryType = MemoryType.BUFFER
-    max_token_limit: int = Field(default=2000, gt=0)
-    max_interactions: int = Field(default=20, gt=0)
+    max_token_limit: int = Field(default=4000, gt=0)  # Increased for better context retention
+    max_interactions: int = Field(default=30, gt=0)  # More interactions for follow-up questions
     enable_summarization: bool = False
 
 
 class ToolConfig(BaseModel):
     """Configuration for tool settings."""
     enabled_tools: List[str] = Field(default_factory=lambda: [
-        "get_data_summary", "get_column_info", "search_data", 
-        "get_basic_stats", "get_value_counts", "get_analytics_classification",
-        "list_measures", "list_dimensions", "create_visualization"
+        "get_data_summary", "get_column_info", "sort_data", "filter_data", "group_and_aggregate",
+        "get_basic_stats", "get_analytics_classification", "list_measures", "list_dimensions"
     ])
     max_search_results: int = Field(default=10, gt=0)
     enable_custom_tools: bool = True
@@ -58,8 +57,8 @@ class AgentConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     memory: MemoryConfig = Field(default_factory=MemoryConfig)
     tools: ToolConfig = Field(default_factory=ToolConfig)
-    verbose: bool = False
-    max_iterations: int = Field(default=5, gt=0)
+    verbose: bool = True  # Enable verbose mode by default for debugging
+    max_iterations: int = Field(default=15, gt=0)  # Increased for complex follow-up questions
     
     class Config:
         """Pydantic config."""

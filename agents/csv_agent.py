@@ -5,6 +5,7 @@ This module contains the main CSVAgent class that ties together all components.
 """
 
 from typing import Optional, List
+import pandas as pd
 from models.config import AgentConfig
 from models.schemas import QueryResponse, LoadCSVResult, AgentStatus
 from core.agent_builder import AgentBuilder
@@ -51,11 +52,17 @@ class CSVAgent:
             metadata = self.csv_loader.get_metadata()
             summary = self.csv_loader.get_data_summary()
             
-            # Update memory with CSV context
+            # Gather comprehensive column context
+            column_context = self._gather_full_column_context()
+            
+            # Update memory with complete CSV context
             self.memory_manager.set_csv_context(
                 csv_file=metadata.file_name,
                 csv_summary=summary
             )
+            
+            # Store column context in agent builder for use in queries
+            self.agent_builder.set_column_context(column_context)
             
             return LoadCSVResult(
                 success=True,
@@ -68,6 +75,66 @@ class CSVAgent:
                 message="Failed to load CSV file",
                 metadata=None
             )
+    
+    def _gather_full_column_context(self) -> str:
+        """
+        Gather comprehensive context about all columns in the CSV.
+        
+        Returns:
+            str: Formatted context with all column information
+        """
+        if not self.csv_loader.is_loaded():
+            return "No CSV data loaded."
+        
+        context_parts = ["COMPLETE DATASET CONTEXT:"]
+        context_parts.append("=" * 50)
+        
+        # Get analytics classification first
+        analytics = self.csv_loader.get_analytics_summary()
+        context_parts.append(f"\n📊 ANALYTICS OVERVIEW:")
+        context_parts.append(f"• Dataset: {analytics['total_columns']} columns ({analytics['measure_count']} measures, {analytics['dimension_count']} dimensions)")
+        context_parts.append(f"• Measures: {', '.join(analytics['measures'])}")
+        context_parts.append(f"• Dimensions: {', '.join(analytics['dimensions'])}")
+        
+        # Get detailed info for each column
+        context_parts.append(f"\n📋 DETAILED COLUMN INFORMATION:")
+        
+        df = self.csv_loader.get_dataframe()
+        for column in df.columns:
+            column_info = self.csv_loader.get_column_info(column)
+            if column_info:
+                context_parts.append(f"\n• {column} ({column_info.column_type.value.upper()}):")
+                context_parts.append(f"  📝 {column_info.description}")
+                context_parts.append(f"  🔢 Type: {column_info.dtype}")
+                context_parts.append(f"  📊 Unique values: {column_info.unique_count}")
+                context_parts.append(f"  ❌ Missing: {column_info.null_count}")
+                
+                # Show sample values for dimensions (categorical data)
+                if column_info.column_type.value == "dimension" and column_info.unique_count <= 20:
+                    sample_values = [str(v) for v in column_info.sample_values[:10]]
+                    context_parts.append(f"  💡 Available values: {', '.join(sample_values)}")
+                elif column_info.column_type.value == "dimension" and column_info.unique_count > 20:
+                    sample_values = [str(v) for v in column_info.sample_values[:5]]
+                    context_parts.append(f"  💡 Sample values: {', '.join(sample_values)}... (and {column_info.unique_count-5} more)")
+                elif column_info.column_type.value == "measure":
+                    # For measures, show min/max range
+                    try:
+                        series = df[column]
+                        if pd.api.types.is_numeric_dtype(series):
+                            min_val = series.min()
+                            max_val = series.max()
+                            context_parts.append(f"  📈 Range: {min_val} to {max_val}")
+                    except:
+                        pass
+        
+        context_parts.append(f"\n🎯 TOOL USAGE GUIDANCE:")
+        context_parts.append(f"• Use sort_data() to sort by any columns with asc/desc order")
+        context_parts.append(f"• Use filter_data() with dimensions and their available values")
+        context_parts.append(f"• Use group_and_aggregate() to group by dimensions and aggregate measures")
+        context_parts.append(f"• Use get_basic_stats() with measures for numerical analysis")
+        context_parts.append(f"• Always reference exact column names and available values shown above")
+        
+        return "\n".join(context_parts)
     
     def ask_question(self, question: str) -> QueryResponse:
         """

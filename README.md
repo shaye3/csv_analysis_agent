@@ -1,35 +1,17 @@
-# CSV QA Agent
+# CSV Analysis Agent
 
-A modular, object-oriented LLM-powered agent system for intelligent CSV data analysis. This system allows users to ask questions about CSV data using natural language and get accurate, data-driven responses.
+A modular, object-oriented LLM-powered agent system for intelligent CSV data analysis with **beautiful web interface and interactive visualizations**. This system allows users to ask questions about CSV data using natural language, create stunning visualizations, and get accurate, data-driven responses.
 
 ## 🎯 Features
 
-- **Intelligent CSV Analysis**: Load CSV files and ask questions using natural language
-- **Conversational Memory**: Support for follow-up questions with conversation context
-- **Function Calling**: Extensible tool system for data analysis operations
-- **CSV-Only Responses**: Strict focus on loaded CSV data, rejecting unrelated questions
-- **Interactive CLI**: Beautiful command-line interface with Rich formatting
-- **Modular Architecture**: Clean, object-oriented design with clear separation of concerns
-
-## 🏗️ Architecture
-
-The system is built with a modular, object-oriented design:
-
-### Core Classes
-
-1. **`CSVLoader`** - Handles CSV file loading, parsing, and data management
-2. **`MemoryManager`** - Manages conversation history and follow-up question detection
-3. **`FunctionRouter`** - Manages tool registration and function calling
-4. **`CSVQAAgent`** - Main agent that orchestrates all components
-5. **`CSVQAApplication`** - High-level application interface and CLI
-
-### Available Tools
-
-- `get_data_summary` - Get comprehensive dataset overview
-- `get_column_info` - Detailed information about specific columns
-- `search_data` - Search for specific data in the CSV
-- `get_basic_stats` - Statistical analysis for numeric columns
-- `get_value_counts` - Frequency distribution for categorical data
+- **🌐 Beautiful Web Interface**: Modern Streamlit web application with drag & drop CSV upload
+- **📊 Interactive Visualizations**: Create charts with natural language or point-and-click interface
+- **🤖 Intelligent CSV Analysis**: Ask questions using natural language and get accurate responses
+- **🧠 LLM-Powered Analytics**: Automatic measure/dimension classification and intelligent insights
+- **💬 Conversational Memory**: Support for follow-up questions with conversation context
+- **🔧 Extensible Tool System**: Function calling with data analysis operations
+- **📈 Advanced Analytics**: Distribution, aggregation, and statistical analysis
+- **🎨 Multiple Interfaces**: Both web UI and CLI available
 
 ## 🚀 Quick Start
 
@@ -38,7 +20,7 @@ The system is built with a modular, object-oriented design:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd csv_qa_agent
+cd csv_analysis_agent
 
 # Create virtual environment
 python -m venv venv
@@ -63,197 +45,278 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-### 3. Usage
+### 3. Web Application (Recommended)
+
+#### Start the Web Interface:
+
+```bash
+python run_streamlit.py
+```
+
+This will open a beautiful web interface in your browser where you can:
+
+- 📁 **Upload CSV files** with drag & drop
+- 📊 **View comprehensive dataset summaries** with analytics classification
+- 🎨 **Create interactive visualizations** with point-and-click interface
+- 💬 **Chat with your data** using natural language
+- 📈 **Get intelligent insights** about measures vs dimensions
+
+#### Web Features:
+- ✅ **File Upload**: Drag & drop CSV files
+- ✅ **Dataset Overview**: Comprehensive summary with statistics
+- ✅ **Analytics Classification**: Automatic measure/dimension identification
+- ✅ **Interactive Charts**: Distribution, sum, average, count visualizations  
+- ✅ **Natural Language Chat**: Ask questions about your data
+- ✅ **Quick Actions**: One-click access to common operations
+
+### 4. Command Line Interface
 
 #### Interactive Mode
 
 ```bash
-python main.py interactive --csv path/to/your/data.csv
+python app/main.py interactive --csv path/to/your/data.csv
 ```
+
+**New CLI Commands:**
+- Type `viz` or `chart` for interactive visualization menu
+- Type `analytics` to see measures vs dimensions classification
+- Ask natural language questions like "Create a distribution chart for salary"
 
 #### Single Question
 
 ```bash
-python main.py analyze data.csv "What is the summary of this dataset?"
+python app/main.py analyze data.csv "What is the average salary per department?"
 ```
 
-#### File Information
+## 📊 Visualization Capabilities
 
-```bash
-python main.py info data.csv
-```
+### Supported Chart Types:
+1. **📈 Distribution Charts**: Histograms and box plots for numerical data
+2. **📊 Aggregation Charts**: Bar charts for sum/average by categories  
+3. **🥧 Count Charts**: Pie charts and bar charts for frequency analysis
+4. **📋 Statistical Summaries**: Comprehensive statistical insights
+
+### Example Questions:
+- "What is the average salary per department?"
+- "Create a distribution chart for performance ratings"
+- "Show me count by education level"
+- "Display sum of sales by region"
+
+## 🏗️ Architecture
+
+The system is built with a modular, object-oriented design:
+
+### Core Classes
+
+1. **`CSVAgent`** - Main orchestrator that coordinates all components
+2. **`CSVLoader`** - Enhanced CSV loading with LLM-powered analytics classification
+3. **`MemoryManager`** - Manages conversation history and context
+4. **`ToolManager`** - Handles tool registration and execution
+5. **`CSVVisualizer`** - Creates beautiful charts and visualizations
+6. **`StreamlitApp`** - Web interface for user interaction
+
+### Available Tools
+
+- `get_data_summary` - Comprehensive dataset overview
+- `get_column_info` - Detailed column information with LLM insights
+- `search_data` - Search for specific data (now works with numeric IDs!)
+- `get_basic_stats` - Statistical analysis for numeric columns
+- `get_value_counts` - Frequency distribution for categorical data
+- `get_analytics_classification` - Show measures vs dimensions
+- `list_measures` - List all numerical fields for aggregation
+- `list_dimensions` - List all categorical fields for grouping
+- `create_visualization` - Generate interactive charts
 
 ## 📋 Programmatic Usage
 
 ```python
-from csv_qa_agent import CSVQAAgent
+from agents.csv_agent import CSVAgent
+from models.config import AgentConfig, LLMConfig
 
 # Initialize the agent
-agent = CSVQAAgent()
+config = AgentConfig(
+    llm=LLMConfig(model_name="gpt-4o-mini")
+)
+agent = CSVAgent(config)
 
 # Load CSV file
 result = agent.load_csv("data.csv")
-if result["success"]:
-    print(f"Loaded: {result['message']}")
+if result.success:
+    print(f"Loaded: {result.message}")
+    
+    # Get analytics classification
+    classification = agent.execute_tool_directly('get_analytics_classification')
+    print(classification)
     
     # Ask questions
-    response = agent.ask_question("What are the column names in this dataset?")
-    print(response["answer"])
+    response = agent.ask_question("What is the average salary by department?")
+    print(response.answer)
     
-    # Follow-up question
-    response = agent.ask_question("Tell me more about the first column")
-    print(response["answer"])
+    # Create visualizations
+    viz_result = agent.execute_tool_directly(
+        'create_visualization',
+        analysis_type='average',
+        measure='salary',
+        dimension='department'
+    )
+    print(viz_result)
 ```
 
 ## 🔧 Advanced Usage
 
-### Custom Tools
+### Custom Visualizations
 
-You can extend the system by creating custom analysis tools:
+The system supports four types of analysis:
 
 ```python
-from function_router import CSVAnalysisTool
+# Distribution analysis
+agent.execute_tool_directly('create_visualization', 
+                          analysis_type='distribution', 
+                          measure='salary')
 
-class CustomAnalysisTool(CSVAnalysisTool):
-    name: str = "custom_analysis"
-    description: str = "Performs custom analysis on the data"
-    
-    def execute(self, parameter: str) -> str:
-        # Your custom analysis logic
-        return "Analysis result"
+# Aggregation analysis  
+agent.execute_tool_directly('create_visualization',
+                          analysis_type='average',
+                          measure='salary', 
+                          dimension='department')
 
-# Register the tool
-agent.function_router.register_tool(CustomAnalysisTool(csv_loader=agent.csv_loader))
+# Count analysis
+agent.execute_tool_directly('create_visualization',
+                          analysis_type='count',
+                          dimension='department')
 ```
 
-### Memory Management
+### Analytics Classification
+
+Get intelligent insights about your data structure:
 
 ```python
-# Clear conversation history
-agent.clear_conversation()
+# Get measures (numerical fields for aggregation)
+measures = agent.csv_loader.get_measures()
 
-# Get conversation context
-context = agent.get_conversation_history()
+# Get dimensions (categorical fields for grouping)  
+dimensions = agent.csv_loader.get_dimensions()
 
-# Export conversation
-conversation_json = agent.memory_manager.export_conversation()
-```
-
-### Direct Tool Execution
-
-```python
-# Execute tools directly without the LLM
-result = agent.execute_tool_directly("get_data_summary")
-result = agent.execute_tool_directly("get_column_info", "column_name")
+# Get full analytics summary
+summary = agent.csv_loader.get_analytics_summary()
 ```
 
 ## 📖 Example Session
 
+### Web Interface:
+1. Open `http://localhost:8501` 
+2. Enter your OpenAI API key
+3. Upload a CSV file
+4. View automatic dataset summary and analytics classification
+5. Create visualizations or chat with your data
+
+### CLI Interface:
 ```
-$ python main.py interactive --csv employees.csv
+$ python app/main.py interactive --csv employees.csv
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                     Welcome                                     │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                               CSV QA Agent                                     │
-│                        Intelligent CSV Analysis Assistant                      │
-└─────────────────────────────────────────────────────────────────────────────────┘
+📊 CSV Analysis Agent
+Successfully loaded employees.csv (1000 rows × 8 columns)
 
-Loading CSV file: employees.csv
-✓ Successfully loaded employees.csv
+🎯 Analytics Classification:
+📈 Measures: salary, performance_rating, years_experience  
+📂 Dimensions: employee_id, name, department, city, education_level
 
-┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Property       ┃ Value                                   ┃
-┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ File Name      │ employees.csv                           │
-│ Rows           │ 1000                                    │
-│ Columns        │ 6                                       │
-│ Memory Usage   │ 48.5 KB                                 │
-│ Columns        │ name, age, department, salary, city ... │
-└────────────────┴─────────────────────────────────────────────┘
+💬 Ask a question: What is the average salary per department?
 
-Your question: What is the summary of this dataset?
+📊 The average salary per department:
+- Engineering: $85,420
+- Marketing: $72,350  
+- Sales: $68,750
+- HR: $71,200
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                     Answer                                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ This dataset contains employee information with 1000 rows and 6 columns:       │
-│                                                                                 │
-│ • **name**: Employee names (text)                                              │
-│ • **age**: Employee ages (numeric, range: 22-65)                               │
-│ • **department**: Department names (5 unique departments)                      │
-│ • **salary**: Annual salaries (numeric, range: $35,000-$120,000)               │
-│ • **city**: Employee cities (15 unique cities)                                 │
-│ • **hire_date**: Hiring dates (datetime)                                       │
-│                                                                                 │
-│ The dataset appears complete with no missing values.                           │
-└─────────────────────────────────────────────────────────────────────────────────┘
+[Interactive chart displayed]
 
-Your question: What about the salary distribution?
+💬 Ask a question: viz
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                     Answer                                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ The salary distribution shows:                                                 │
-│                                                                                 │
-│ • **Mean**: $72,450                                                            │
-│ • **Median**: $71,000                                                          │
-│ • **Standard Deviation**: $18,200                                              │
-│ • **Range**: $35,000 - $120,000                                                │
-│                                                                                 │
-│ The distribution appears relatively normal with salaries concentrated around   │
-│ the $70K mark.                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+🎨 Visualization Menu:
+1. Distribution - Show distribution of a measure
+2. Sum - Sum of measure by dimension  
+3. Average - Average of measure by dimension
+4. Count - Count by dimension
 
-💡 This appears to be a follow-up question
+Select: 2
+Measure: salary
+Dimension: department
+✅ Chart created and displayed!
 ```
 
 ## 🧪 Testing
 
-Run the example script to test the system:
+The project includes comprehensive tests:
 
 ```bash
-python example_usage.py
+# Test basic functionality
+python test_agent.py
+
+# Test analytics classification
+python test_analytics_classification.py
+
+# Test visualization system  
+python test_visualization.py
+
+# Test web integration
+python test_integrated_visualization.py
+
+# Test enhanced dataset summary
+python test_enhanced_summary.py
 ```
 
-This will create sample data and demonstrate all the agent's capabilities.
+## 📦 Dependencies
 
-## 🎯 Key Design Principles
+### Core Dependencies:
+- **LangChain**: LLM integration and tool calling
+- **Pandas**: Data processing and analysis
+- **Pydantic**: Configuration and data validation
+- **Python-dotenv**: Environment variable management
 
-1. **CSV-Only Focus**: The agent strictly answers questions about the loaded CSV data
-2. **Modular Architecture**: Clear separation of concerns with dedicated classes
-3. **Extensible Tools**: Easy to add new analysis capabilities
-4. **Conversation Memory**: Maintains context for natural follow-up questions
-5. **Error Handling**: Graceful handling of invalid questions and data issues
+### Visualization Dependencies:
+- **Matplotlib & Seaborn**: Static chart generation
+- **Plotly**: Interactive web charts  
+- **Streamlit**: Web application framework
 
-## 🔒 Security & Privacy
+### CLI Dependencies:
+- **Rich**: Beautiful CLI formatting
+- **Typer**: Command-line interface
 
-- No data is sent to external services except for LLM processing
-- CSV data remains local to your system
-- API keys are handled securely through environment variables
+## 🔐 Security Notes
 
-## 🤝 Contributing
+- Never commit your `.env` file to version control
+- Keep your API key secure and rotate it regularly  
+- The web app only stores data in memory during the session
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+## 🚀 What's New
 
-## 📄 License
+### Latest Features:
+- ✅ **Streamlit Web Interface**: Beautiful drag & drop CSV upload
+- ✅ **Interactive Visualizations**: Point-and-click chart creation
+- ✅ **LLM-Powered Analytics**: Automatic measure/dimension classification
+- ✅ **Enhanced Search**: Now finds numeric IDs and values correctly
+- ✅ **Multi-parameter Tools**: Natural language visualization requests
+- ✅ **Comprehensive Summaries**: Rich dataset overviews with statistics
 
-MIT License - see LICENSE file for details.
+### Recent Fixes:
+- 🐛 Fixed search functionality for numeric columns (employee IDs now work!)
+- 🐛 Fixed multi-parameter visualization tools 
+- 🐛 Resolved structured output warnings
+- 🐛 Enhanced error handling and validation
 
-## 🆘 Troubleshooting
+---
 
-### Common Issues
+**Ready to explore your data? Start with the web interface:**
 
-1. **API Key Error**: Make sure your OpenAI API key is set correctly
-2. **Import Errors**: Ensure all dependencies are installed with `pip install -r requirements.txt`
-3. **CSV Loading Issues**: Check file permissions and format
-4. **Memory Issues**: Large CSV files may require adjusting memory settings
+```bash
+python run_streamlit.py
+```
 
-### Getting Help
+**Or use the CLI for power users:**
 
-- Check the example scripts for usage patterns
-- Review the docstrings in each module
-- Create an issue for bugs or feature requests 
+```bash  
+python app/main.py interactive --csv your_data.csv
+```
+
+🎯 **Your CSV Analysis Agent is ready for intelligent business intelligence!** 📊🚀 

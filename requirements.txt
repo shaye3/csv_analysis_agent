@@ -24,3 +24,7 @@ typer>=0.9.0  # For CLI interface
 # Visualization
 matplotlib>=3.7.0
 seaborn>=0.12.0
+
+# Web Application
+streamlit>=1.28.0
+plotly>=5.17.0  # For interactive web charts

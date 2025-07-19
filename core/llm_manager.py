@@ -81,21 +81,27 @@ class LLMManager:
         """
         return self._structured_llm
     
-    def classify_question(self, question: str, csv_context: str) -> CSVQuestionClassification:
+    def classify_question(self, question: str, csv_context: str, conversation_history: str = "") -> CSVQuestionClassification:
         """
         Classify if a question is related to CSV data analysis.
         
         Args:
             question (str): The user's question
             csv_context (str): Context about the current CSV dataset
+            conversation_history (str): Recent conversation context for pronouns/references
             
         Returns:
             CSVQuestionClassification: Classification result
         """
+        # Build context section
+        context_section = f"CURRENT CSV DATASET CONTEXT:\n{csv_context}"
+        
+        if conversation_history.strip():
+            context_section += f"\n\nRECENT CONVERSATION CONTEXT:\n{conversation_history}"
+        
         prompt = f"""You are a data analysis expert. Your task is to determine if a user's question is related to analyzing the currently loaded CSV dataset or if it's a general question unrelated to the data.
 
-CURRENT CSV DATASET CONTEXT:
-{csv_context}
+{context_section}
 
 USER QUESTION: "{question}"
 
@@ -107,13 +113,20 @@ GUIDELINES FOR CSV-RELATED QUESTIONS (is_csv_related = True):
 - Comparisons or relationships within the dataset
 - Data quality, missing values, or data characteristics
 - Questions that reference column names from the dataset
+- Follow-up questions using pronouns (he, she, it, they, them, that, this) that refer to entities mentioned in previous CSV-related conversation
+- Questions asking for additional details about previously mentioned data points, people, or records
 
 GUIDELINES FOR NON-CSV QUESTIONS (is_csv_related = False):
 - General knowledge not related to the specific dataset
 - Requests for explanations of concepts unrelated to the data
 - Questions about external information not in the CSV
 - Programming help unrelated to analyzing this specific dataset
-- Personal questions or general conversation
+- Personal questions or general conversation (unless they contain pronouns referring to dataset entities)
+
+SPECIAL HANDLING FOR FOLLOW-UP QUESTIONS:
+- If the question contains pronouns (he, she, it, they, them, that, this) and recent conversation shows CSV data analysis, classify as CSV-related
+- If asking "where", "when", "how", "what" about something mentioned in recent CSV analysis, classify as CSV-related
+- Questions like "where is he located?", "what about her department?", "how old is she?" are CSV-related if referring to people/entities from the dataset
 
 Analyze the question and provide your classification with reasoning."""
 
