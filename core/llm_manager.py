@@ -113,20 +113,13 @@ GUIDELINES FOR CSV-RELATED QUESTIONS (is_csv_related = True):
 - Comparisons or relationships within the dataset
 - Data quality, missing values, or data characteristics
 - Questions that reference column names from the dataset
-- Follow-up questions using pronouns (he, she, it, they, them, that, this) that refer to entities mentioned in previous CSV-related conversation
-- Questions asking for additional details about previously mentioned data points, people, or records
 
 GUIDELINES FOR NON-CSV QUESTIONS (is_csv_related = False):
 - General knowledge not related to the specific dataset
 - Requests for explanations of concepts unrelated to the data
 - Questions about external information not in the CSV
 - Programming help unrelated to analyzing this specific dataset
-- Personal questions or general conversation (unless they contain pronouns referring to dataset entities)
-
-SPECIAL HANDLING FOR FOLLOW-UP QUESTIONS:
-- If the question contains pronouns (he, she, it, they, them, that, this) and recent conversation shows CSV data analysis, classify as CSV-related
-- If asking "where", "when", "how", "what" about something mentioned in recent CSV analysis, classify as CSV-related
-- Questions like "where is he located?", "what about her department?", "how old is she?" are CSV-related if referring to people/entities from the dataset
+- Personal questions or general conversation
 
 Analyze the question and provide your classification with reasoning."""
 

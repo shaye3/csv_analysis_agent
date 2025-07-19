@@ -29,6 +29,12 @@ class SortDataInput(BaseModel):
     sort_orders: str = Field(description="Comma-separated list of sort orders ('asc' or 'desc') matching the sort columns", default="asc")
 
 
+class FilterDataInput(BaseModel):
+    """Input schema for filter data tool."""
+    column_name: str = Field(description="Name of the column to filter by")
+    values: str = Field(description="Comma-separated list of values to filter by")
+
+
 class CSVAnalysisTool(BaseModel, ABC):
     """Abstract base class for CSV analysis tools."""
     
@@ -603,6 +609,16 @@ class ToolManager:
                 description=tool.description,
                 func=sort_data_func,
                 args_schema=SortDataInput
+            )
+        elif tool.name == "filter_data":
+            def filter_data_func(column_name: str, values: str) -> str:
+                return self._execute_tool_with_tracking(tool.name, column_name, values)
+            
+            langchain_tool = StructuredTool.from_function(
+                name=tool.name,
+                description=tool.description,
+                func=filter_data_func,
+                args_schema=FilterDataInput
             )
         else:
             # All other tools use regular single-parameter handling
