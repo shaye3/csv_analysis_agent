@@ -1,6 +1,7 @@
 """Core components package for CSV Analysis Agent."""
 
 from .llm_manager import LLMManager
+from .agent_manager import AgentManager
 from .memory_manager import (
     BaseMemoryManager,
     BufferMemoryManager,
@@ -14,6 +15,7 @@ from .agent_builder import AgentBuilder
 
 __all__ = [
     "LLMManager",
+    "AgentManager",
     "BaseMemoryManager",
     "BufferMemoryManager", 
     "MemoryManagerFactory",

@@ -247,9 +247,6 @@ class CSVAgentInterface:
             # Show metadata if available
             if response.used_tools:
                 self.console.print(f"[dim]Tools used: {', '.join(response.used_tools)}[/dim]")
-            
-            if response.follow_up:
-                self.console.print("[dim]💡 This appears to be a follow-up question[/dim]")
         else:
             # Question not related to CSV
             self.console.print(f"[yellow]ℹ️  {response.answer}[/yellow]")

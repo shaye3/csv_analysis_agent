@@ -62,7 +62,6 @@ class QueryResponse(BaseModel):
     answer: str
     is_csv_related: bool
     used_tools: List[str]
-    follow_up: bool
     metadata: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now)
 

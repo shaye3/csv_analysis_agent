@@ -139,24 +139,7 @@ class BufferMemoryManager(BaseMemoryManager):
             "has_context": len(self._conversation_history) > 0
         }
     
-    def is_follow_up_question(self, question: str) -> bool:
-        """Determine if question is a follow-up."""
-        if not self._conversation_history:
-            return False
-        
-        follow_up_indicators = [
-            "also", "too", "and", "what about", "how about", 
-            "can you", "tell me more", "explain", "why",
-            "that", "this", "it", "them", "those", "these"
-        ]
-        
-        question_lower = question.lower()
-        
-        for indicator in follow_up_indicators:
-            if indicator in question_lower:
-                return True
-        
-        return len(question.split()) < 5
+
 
 
 class MemoryManagerFactory:

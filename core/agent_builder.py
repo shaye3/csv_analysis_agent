@@ -12,6 +12,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from models.config import AgentConfig
 from models.schemas import AgentStatus, QueryResponse
 from core.llm_manager import LLMManager
+from core.agent_manager import AgentManager
 from core.memory_manager import MemoryManagerFactory, BaseMemoryManager
 from core.tool_manager import ToolManager
 from data_io.csv_loader import CSVLoader
@@ -36,6 +37,8 @@ class AgentBuilder:
         
         # Initialize core components
         self.llm_manager = LLMManager(config.llm)
+        # Initialize agent manager for query classification
+        self.agent_manager = AgentManager(self.llm_manager.get_structured_llm())
         # Pass LLM instance to CSVLoader for intelligent column descriptions
         self.csv_loader = CSVLoader(llm=self.llm_manager.get_llm())
         self.memory_manager = MemoryManagerFactory.create_memory_manager(config.memory)
@@ -168,38 +171,32 @@ Remember: You are an expert data analyst who only works with the provided CSV da
             return QueryResponse(
                 answer="No CSV file is currently loaded. Please load a CSV file first.",
                 is_csv_related=False,
-                used_tools=[],
-                follow_up=False
+                used_tools=[]
             )
         
-        # Check if question is CSV-related
-        csv_context = self.query_context.get_context_for_classification()
-        
-        # Get recent conversation history for context
+        # Get full conversation history for context
         conversation_history = ""
-        recent_messages = self.memory_manager.get_langchain_memory().chat_memory.messages[-4:]  # Last 2 exchanges
-        if recent_messages:
+        all_messages = self.memory_manager.get_langchain_memory().chat_memory.messages
+        if all_messages:
             history_parts = []
-            for i in range(0, len(recent_messages), 2):
-                if i + 1 < len(recent_messages):
-                    human_msg = recent_messages[i].content if hasattr(recent_messages[i], 'content') else str(recent_messages[i])
-                    ai_msg = recent_messages[i + 1].content if hasattr(recent_messages[i + 1], 'content') else str(recent_messages[i + 1])
+            for i in range(0, len(all_messages), 2):
+                if i + 1 < len(all_messages):
+                    human_msg = all_messages[i].content if hasattr(all_messages[i], 'content') else str(all_messages[i])
+                    ai_msg = all_messages[i + 1].content if hasattr(all_messages[i + 1], 'content') else str(all_messages[i + 1])
                     history_parts.append(f"Human: {human_msg}\nAssistant: {ai_msg}")
             conversation_history = "\n\n".join(history_parts)
         
-        classification = self.llm_manager.classify_question(question, csv_context, conversation_history)
+        classification = self.agent_manager.is_query_in_scope(question, conversation_history)
         
         if not classification.is_csv_related:
             return QueryResponse(
                 answer="I can only answer questions about the loaded CSV data. Please ask questions related to your dataset, such as asking about columns, statistics, or searching for specific data.",
                 is_csv_related=False,
                 used_tools=[],
-                follow_up=False,
                 metadata={"classification_reasoning": classification.reasoning}
             )
         
-        # Detect follow-up
-        is_follow_up = self.memory_manager.is_follow_up_question(question)
+
         
         try:
             # Execute query through agent
@@ -223,7 +220,6 @@ Remember: You are an expert data analyst who only works with the provided CSV da
                 ai_response=answer,
                 metadata={
                     "used_tools": used_tools,
-                    "is_follow_up": is_follow_up,
                     "classification_reasoning": classification.reasoning
                 }
             )
@@ -232,7 +228,6 @@ Remember: You are an expert data analyst who only works with the provided CSV da
                 answer=answer,
                 is_csv_related=True,
                 used_tools=used_tools,
-                follow_up=is_follow_up,
                 metadata={
                     "classification_reasoning": classification.reasoning,
                     "execution_metadata": response
@@ -245,7 +240,6 @@ Remember: You are an expert data analyst who only works with the provided CSV da
                 answer=error_message,
                 is_csv_related=True,
                 used_tools=[],
-                follow_up=is_follow_up,
                 metadata={"error": str(e)}
             )
     

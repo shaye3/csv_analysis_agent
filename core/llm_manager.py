@@ -81,49 +81,7 @@ class LLMManager:
         """
         return self._structured_llm
     
-    def classify_question(self, question: str, csv_context: str, conversation_history: str = "") -> CSVQuestionClassification:
-        """
-        Classify if a question is related to CSV data analysis.
-        
-        Args:
-            question (str): The user's question
-            csv_context (str): Context about the current CSV dataset
-            conversation_history (str): Recent conversation context for pronouns/references
-            
-        Returns:
-            CSVQuestionClassification: Classification result
-        """
-        # Build context section
-        context_section = f"CURRENT CSV DATASET CONTEXT:\n{csv_context}"
-        
-        if conversation_history.strip():
-            context_section += f"\n\nRECENT CONVERSATION CONTEXT:\n{conversation_history}"
-        
-        prompt = f"""You are a data analysis expert. Your task is to determine if a user's question is related to analyzing the currently loaded CSV dataset or if it's a general question unrelated to the data.
 
-{context_section}
-
-USER QUESTION: "{question}"
-
-GUIDELINES FOR CSV-RELATED QUESTIONS (is_csv_related = True):
-- Analyzing, summarizing, or describing the CSV data
-- Asking about specific columns, rows, or values in the dataset
-- Statistical analysis, distributions, or patterns in the data
-- Searching, filtering, or finding specific information in the data
-- Comparisons or relationships within the dataset
-- Data quality, missing values, or data characteristics
-- Questions that reference column names from the dataset
-
-GUIDELINES FOR NON-CSV QUESTIONS (is_csv_related = False):
-- General knowledge not related to the specific dataset
-- Requests for explanations of concepts unrelated to the data
-- Questions about external information not in the CSV
-- Programming help unrelated to analyzing this specific dataset
-- Personal questions or general conversation
-
-Analyze the question and provide your classification with reasoning."""
-
-        return self._structured_llm.invoke(prompt)
     
     def update_config(self, new_config: LLMConfig) -> None:
         """
