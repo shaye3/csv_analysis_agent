@@ -1,7 +1,7 @@
 """
 Streamlit Web Application for CSV Analysis Agent
 
-A beautiful web interface for intelligent CSV data analysis with LLM-powered insights and visualizations.
+A beautiful web interface for intelligent CSV data analysis with LLM-powered insights.
 """
 
 import streamlit as st
@@ -93,35 +93,6 @@ def display_dataset_summary():
         # Sample data preview
         st.subheader("👀 Data Preview")
         st.dataframe(df.head(10), use_container_width=True)
-        
-        # Data quality insights
-        insights = []
-        
-        # Dataset size insights
-        if len(df) > 50000:
-            insights.append("📊 Large dataset - excellent for comprehensive analysis")
-        elif len(df) > 10000:
-            insights.append("📈 Medium-sized dataset - good for analysis")
-        elif len(df) > 1000:
-            insights.append("📉 Moderate dataset - suitable for basic analysis")
-        else:
-            insights.append("⚠️ Small dataset - limited statistical power")
-        
-        # Missing data insights
-        total_cells = len(df) * len(df.columns)
-        missing_pct = (missing_total / total_cells) * 100 if total_cells > 0 else 0
-        
-        if missing_pct > 20:
-            insights.append("🚨 High missing data - consider data cleaning")
-        elif missing_pct > 5:
-            insights.append("⚠️ Some missing data - monitor data quality")
-        else:
-            insights.append("✅ Minimal missing data - good quality")
-        
-        if insights:
-            st.subheader("💡 Data Quality Insights")
-            for insight in insights:
-                st.info(insight)
                 
     except Exception as e:
         st.error(f"Error displaying dataset summary: {str(e)}")

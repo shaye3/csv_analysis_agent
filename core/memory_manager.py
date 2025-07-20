@@ -1,16 +1,12 @@
 """
 Memory Manager Module
 
-This module contains enhanced memory management classes for the CSV QA Agent.
+This module contains enhanced memory management classes for the CSV Analysis Agent.
 """
 
-from typing import List, Dict, Any, Optional, Protocol
-from langchain.memory import ConversationBufferMemory, ConversationSummaryMemory
-from langchain.schema import BaseMessage, HumanMessage, AIMessage
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.messages import BaseMessage as CoreBaseMessage
+from typing import List, Dict, Any, Optional
+from langchain.memory import ConversationBufferMemory
 from abc import ABC, abstractmethod
-import json
 from datetime import datetime
 
 from models.config import MemoryConfig, MemoryType
@@ -186,18 +182,4 @@ class MemoryManagerFactory:
             raise ValueError(f"Unsupported memory type: {config.memory_type}")
 
 
-# Legacy compatibility class
-class MemoryManager(BufferMemoryManager):
-    """Legacy memory manager for backward compatibility."""
-    
-    def __init__(self, memory_type: str = "buffer", max_token_limit: int = 2000):
-        """Initialize with legacy parameters."""
-        config = MemoryConfig(
-            memory_type=MemoryType.BUFFER,
-            max_token_limit=max_token_limit,
-            max_interactions=20
-        )
-        super().__init__(config)
-        
-        self.memory_type = memory_type
-        self.max_token_limit = max_token_limit 
+ 

@@ -717,48 +717,4 @@ class ToolManager:
             if tool_name in self._tools and any(keyword in question_lower for keyword in keywords):
                 suggested_tools.append(tool_name)
         
-        return suggested_tools
-
-
-# Legacy compatibility class
-class FunctionRouter(ToolManager):
-    """Legacy function router for backward compatibility."""
-    
-    def __init__(self, csv_loader):
-        """Initialize with legacy interface."""
-        config = ToolConfig()  # Use default config
-        super().__init__(config, csv_loader)
-    
-    def get_langchain_tools(self) -> List[Tool]:
-        """Get tools in legacy format."""
-        return super().get_langchain_tools()
-    
-    def execute_tool(self, tool_name: str, *args, **kwargs) -> str:
-        """Execute tool and return string result for legacy compatibility."""
-        result = super().execute_tool(tool_name, *args, **kwargs)
-        return result.result
-    
-    def create_tool_usage_prompt(self) -> str:
-        """Create tool usage prompt for legacy compatibility."""
-        tools = self.get_available_tools()
-        if not tools:
-            return "No tools are currently available."
-        
-        prompt_parts = [
-            "You have access to the following tools for analyzing CSV data:",
-            ""
-        ]
-        
-        for tool_name in tools:
-            if tool_name in self._tools:
-                tool = self._tools[tool_name]
-                prompt_parts.append(f"- {tool_name}: {tool.description}")
-        
-        prompt_parts.extend([
-            "",
-            "Use these tools to answer questions about the CSV data.",
-            "Only use tools when you need specific information from the dataset.",
-            "Always base your answers on the actual data, not assumptions."
-        ])
-        
-        return "\n".join(prompt_parts) 
+        return suggested_tools 

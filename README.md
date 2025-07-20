@@ -1,16 +1,15 @@
 # CSV Analysis Agent
 
-A modular, object-oriented LLM-powered agent system for intelligent CSV data analysis with **beautiful web interface and interactive visualizations**. This system allows users to ask questions about CSV data using natural language, create stunning visualizations, and get accurate, data-driven responses.
+A modular, object-oriented LLM-powered agent system for intelligent CSV data analysis with **beautiful web interface**. This system allows users to ask questions about CSV data using natural language and get accurate, data-driven responses.
 
 ## 🎯 Features
 
 - **🌐 Beautiful Web Interface**: Modern Streamlit web application with drag & drop CSV upload
-- **📊 Interactive Visualizations**: Create charts with natural language or point-and-click interface
 - **🤖 Intelligent CSV Analysis**: Ask questions using natural language and get accurate responses
 - **🧠 LLM-Powered Analytics**: Automatic measure/dimension classification and intelligent insights
 - **💬 Conversational Memory**: Support for follow-up questions with conversation context
 - **🔧 Extensible Tool System**: Function calling with data analysis operations
-- **📈 Advanced Analytics**: Distribution, aggregation, and statistical analysis
+- **📈 Advanced Analytics**: Filtering, sorting, grouping and statistical analysis
 - **🎨 Multiple Interfaces**: Both web UI and CLI available
 
 ## 🚀 Quick Start
@@ -57,7 +56,6 @@ This will open a beautiful web interface in your browser where you can:
 
 - 📁 **Upload CSV files** with drag & drop
 - 📊 **View comprehensive dataset summaries** with analytics classification
-- 🎨 **Create interactive visualizations** with point-and-click interface
 - 💬 **Chat with your data** using natural language
 - 📈 **Get intelligent insights** about measures vs dimensions
 
@@ -65,9 +63,8 @@ This will open a beautiful web interface in your browser where you can:
 - ✅ **File Upload**: Drag & drop CSV files
 - ✅ **Dataset Overview**: Comprehensive summary with statistics
 - ✅ **Analytics Classification**: Automatic measure/dimension identification
-- ✅ **Interactive Charts**: Distribution, sum, average, count visualizations  
 - ✅ **Natural Language Chat**: Ask questions about your data
-- ✅ **Quick Actions**: One-click access to common operations
+- ✅ **Data Operations**: Filtering, sorting, grouping and aggregation
 
 ### 4. Command Line Interface
 
@@ -78,9 +75,8 @@ python app/main.py interactive --csv path/to/your/data.csv
 ```
 
 **New CLI Commands:**
-- Type `viz` or `chart` for interactive visualization menu
 - Type `analytics` to see measures vs dimensions classification
-- Ask natural language questions like "Create a distribution chart for salary"
+- Ask natural language questions about your data
 
 #### Single Question
 
@@ -88,19 +84,19 @@ python app/main.py interactive --csv path/to/your/data.csv
 python app/main.py analyze data.csv "What is the average salary per department?"
 ```
 
-## 📊 Visualization Capabilities
+## 📊 Data Analysis Capabilities
 
-### Supported Chart Types:
-1. **📈 Distribution Charts**: Histograms and box plots for numerical data
-2. **📊 Aggregation Charts**: Bar charts for sum/average by categories  
-3. **🥧 Count Charts**: Pie charts and bar charts for frequency analysis
-4. **📋 Statistical Summaries**: Comprehensive statistical insights
+### Supported Operations:
+1. **📈 Statistical Analysis**: Get comprehensive statistics for numerical data
+2. **📊 Data Aggregation**: Group by categories and aggregate measures  
+3. **🔍 Data Filtering**: Filter data by column values
+4. **📋 Data Sorting**: Sort by multiple columns with custom order
 
 ### Example Questions:
 - "What is the average salary per department?"
-- "Create a distribution chart for performance ratings"
-- "Show me count by education level"
-- "Display sum of sales by region"
+- "Show me employees with the highest performance ratings"
+- "Filter employees by Engineering department"
+- "Sort employees by salary from highest to lowest"
 
 ## 🏗️ Architecture
 
@@ -112,20 +108,20 @@ The system is built with a modular, object-oriented design:
 2. **`CSVLoader`** - Enhanced CSV loading with LLM-powered analytics classification
 3. **`MemoryManager`** - Manages conversation history and context
 4. **`ToolManager`** - Handles tool registration and execution
-5. **`CSVVisualizer`** - Creates beautiful charts and visualizations
+5. **`AgentBuilder`** - Composes LLM, memory, tools and context into working agent
 6. **`StreamlitApp`** - Web interface for user interaction
 
 ### Available Tools
 
 - `get_data_summary` - Comprehensive dataset overview
 - `get_column_info` - Detailed column information with LLM insights
-- `search_data` - Search for specific data (now works with numeric IDs!)
+- `sort_data` - Sort data by multiple columns with custom order
+- `filter_data` - Filter data by column values
+- `group_and_aggregate` - Group by columns and aggregate measures
 - `get_basic_stats` - Statistical analysis for numeric columns
-- `get_value_counts` - Frequency distribution for categorical data
 - `get_analytics_classification` - Show measures vs dimensions
 - `list_measures` - List all numerical fields for aggregation
 - `list_dimensions` - List all categorical fields for grouping
-- `create_visualization` - Generate interactive charts
 
 ## 📋 Programmatic Usage
 
@@ -152,38 +148,36 @@ if result.success:
     response = agent.ask_question("What is the average salary by department?")
     print(response.answer)
     
-    # Create visualizations
-    viz_result = agent.execute_tool_directly(
-        'create_visualization',
-        analysis_type='average',
-        measure='salary',
-        dimension='department'
+    # Group and aggregate data
+    result = agent.execute_tool_directly(
+        'group_and_aggregate',
+        group_by_columns='department',
+        aggregations='salary:average'
     )
-    print(viz_result)
+    print(result)
 ```
 
 ## 🔧 Advanced Usage
 
-### Custom Visualizations
+### Data Operations
 
-The system supports four types of analysis:
+The system supports comprehensive data analysis operations:
 
 ```python
-# Distribution analysis
-agent.execute_tool_directly('create_visualization', 
-                          analysis_type='distribution', 
-                          measure='salary')
+# Sort data by multiple columns
+agent.execute_tool_directly('sort_data', 
+                          sort_columns='department,salary', 
+                          sort_orders='asc,desc')
 
-# Aggregation analysis  
-agent.execute_tool_directly('create_visualization',
-                          analysis_type='average',
-                          measure='salary', 
-                          dimension='department')
+# Filter data by values
+agent.execute_tool_directly('filter_data',
+                          column_name='department',
+                          values='Engineering,Sales')
 
-# Count analysis
-agent.execute_tool_directly('create_visualization',
-                          analysis_type='count',
-                          dimension='department')
+# Group and aggregate data
+agent.execute_tool_directly('group_and_aggregate',
+                          group_by_columns='department',
+                          aggregations='salary:average,years_experience:sum')
 ```
 
 ### Analytics Classification
@@ -208,7 +202,7 @@ summary = agent.csv_loader.get_analytics_summary()
 2. Enter your OpenAI API key
 3. Upload a CSV file
 4. View automatic dataset summary and analytics classification
-5. Create visualizations or chat with your data
+5. Chat with your data using natural language
 
 ### CLI Interface:
 ```
@@ -229,20 +223,13 @@ Successfully loaded employees.csv (1000 rows × 8 columns)
 - Sales: $68,750
 - HR: $71,200
 
-[Interactive chart displayed]
+💬 Ask a question: Show me employees in Engineering department
 
-💬 Ask a question: viz
-
-🎨 Visualization Menu:
-1. Distribution - Show distribution of a measure
-2. Sum - Sum of measure by dimension  
-3. Average - Average of measure by dimension
-4. Count - Count by dimension
-
-Select: 2
-Measure: salary
-Dimension: department
-✅ Chart created and displayed!
+🔍 Found 250 employees in Engineering department:
+- Average salary: $85,420
+- Average experience: 6.2 years
+- Performance rating range: 3.2 - 4.9
+- Education levels: 60% Master, 35% Bachelor, 5% PhD
 ```
 
 ## 🧪 Testing
@@ -255,15 +242,6 @@ python test_agent.py
 
 # Test analytics classification
 python test_analytics_classification.py
-
-# Test visualization system  
-python test_visualization.py
-
-# Test web integration
-python test_integrated_visualization.py
-
-# Test enhanced dataset summary
-python test_enhanced_summary.py
 ```
 
 ## 📦 Dependencies
@@ -274,9 +252,7 @@ python test_enhanced_summary.py
 - **Pydantic**: Configuration and data validation
 - **Python-dotenv**: Environment variable management
 
-### Visualization Dependencies:
-- **Matplotlib & Seaborn**: Static chart generation
-- **Plotly**: Interactive web charts  
+### Web Dependencies:
 - **Streamlit**: Web application framework
 
 ### CLI Dependencies:
@@ -293,15 +269,15 @@ python test_enhanced_summary.py
 
 ### Latest Features:
 - ✅ **Streamlit Web Interface**: Beautiful drag & drop CSV upload
-- ✅ **Interactive Visualizations**: Point-and-click chart creation
 - ✅ **LLM-Powered Analytics**: Automatic measure/dimension classification
 - ✅ **Enhanced Search**: Now finds numeric IDs and values correctly
-- ✅ **Multi-parameter Tools**: Natural language visualization requests
+- ✅ **Multi-parameter Tools**: Sorting, filtering and grouping operations
 - ✅ **Comprehensive Summaries**: Rich dataset overviews with statistics
+- ✅ **Follow-up Questions**: Intelligent conversation context handling
 
 ### Recent Fixes:
 - 🐛 Fixed search functionality for numeric columns (employee IDs now work!)
-- 🐛 Fixed multi-parameter visualization tools 
+- 🐛 Fixed multi-parameter tool registration for filtering, sorting and grouping
 - 🐛 Resolved structured output warnings
 - 🐛 Enhanced error handling and validation
 

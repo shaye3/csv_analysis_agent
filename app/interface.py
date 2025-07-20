@@ -287,8 +287,7 @@ class CSVAgentInterface:
                     self.console.print("[green]Conversation history cleared.[/green]")
                 elif question.lower() == 'tools':
                     self._show_tools()
-                elif question.lower() in ['viz', 'visualize', 'chart']:
-                    self._show_visualization_menu()
+
                 elif question.lower() == 'analytics':
                     self._show_analytics_classification()
                 else:
@@ -309,7 +308,6 @@ class CSVAgentInterface:
 - `status` - Show agent and data status
 - `tools` - Show available analysis tools
 - `analytics` - Show measures vs dimensions classification
-- `viz`, `visualize`, or `chart` - Interactive visualization menu
 - `clear` - Clear conversation history
 - `quit` or `exit` - Exit the application
 
@@ -317,17 +315,16 @@ class CSVAgentInterface:
 - "What is the summary of this dataset?"
 - "Tell me about the 'column_name' column"
 - "What are the statistics for numeric columns?"
-- "Search for rows containing 'search_term'"
-- "What are the unique values in 'column_name'?"
-- "Create a distribution chart for salary"
-- "Show me average sales by department" 
-- "Visualize count by category"
+- "Filter employees by department Engineering"
+- "Sort employees by salary descending"
+- "Group by department and average salary"
+- "Show me employees with highest performance ratings"
 
 **Tips:**
 - Ask follow-up questions naturally
 - Reference previous answers with "it", "that", etc.
 - Be specific about column names for better results
-- Use 'viz' for interactive chart creation menu
+- Use natural language to describe data operations
         """
         self.console.print(Panel(Markdown(help_text), title="Help"))
     
@@ -371,11 +368,12 @@ class CSVAgentInterface:
             "get_column_info": "Get detailed column information", 
             "search_data": "Search for specific data in the dataset",
             "get_basic_stats": "Get statistical information for numeric columns",
-            "get_value_counts": "Get frequency distribution for categorical columns",
             "get_analytics_classification": "Show measures vs dimensions classification",
             "list_measures": "List all available measures (numerical fields)",
             "list_dimensions": "List all available dimensions (categorical fields)",
-            "create_visualization": "Create data visualizations and charts"
+            "sort_data": "Sort data by multiple columns with custom order",
+            "filter_data": "Filter data by column values",
+            "group_and_aggregate": "Group by columns and aggregate measures"
         }
         
         for tool in tools:
@@ -393,93 +391,4 @@ class CSVAgentInterface:
         except Exception as e:
             self.console.print(f"[red]Error getting analytics classification: {e}[/red]")
 
-    def _show_visualization_menu(self) -> None:
-        """Show interactive visualization menu."""
-        try:
-            # Get available measures and dimensions
-            measures_result = self.agent.execute_tool_directly('list_measures') 
-            dimensions_result = self.agent.execute_tool_directly('list_dimensions')
-            
-            self.console.print(Panel(
-                "[bold blue]📊 Interactive Visualization Menu[/bold blue]\n\n"
-                "Choose from the analysis types below:",
-                title="Data Visualization"
-            ))
-            
-            # Show analysis type options
-            self.console.print("[bold cyan]Available Analysis Types:[/bold cyan]")
-            self.console.print("1. [green]Distribution[/green] - Show distribution of a measure (histogram + box plot)")
-            self.console.print("2. [blue]Sum[/blue] - Sum of measure grouped by dimension") 
-            self.console.print("3. [yellow]Average[/yellow] - Average of measure grouped by dimension")
-            self.console.print("4. [magenta]Count[/magenta] - Count occurrences by dimension")
-            self.console.print("5. [dim]Back to main menu[/dim]")
-            
-            choice = Prompt.ask("\nSelect analysis type", choices=["1", "2", "3", "4", "5"], default="5")
-            
-            if choice == "5":
-                return
-            
-            analysis_types = {
-                "1": "distribution",
-                "2": "sum", 
-                "3": "average",
-                "4": "count"
-            }
-            
-            analysis_type = analysis_types[choice]
-            
-            # Get user selections based on analysis type
-            if analysis_type == "distribution":
-                self._create_distribution_chart(measures_result)
-            elif analysis_type == "count":
-                self._create_count_chart(dimensions_result)
-            else:  # sum or average
-                self._create_aggregation_chart(analysis_type, measures_result, dimensions_result)
-                
-        except Exception as e:
-            self.console.print(f"[red]Error in visualization menu: {e}[/red]")
-
-    def _create_distribution_chart(self, measures_result: str) -> None:
-        """Create a distribution chart."""
-        self.console.print(Panel(measures_result, title="Available Measures"))
-        
-        measure = Prompt.ask("Enter the measure name for distribution analysis")
-        
-        if measure:
-            with self.console.status("[bold blue]Creating distribution chart..."):
-                result = self.agent.execute_tool_directly('create_visualization', 
-                                                       analysis_type='distribution', 
-                                                       measure=measure)
-            self.console.print(Panel(result, title="[green]Distribution Chart Created[/green]", border_style="green"))
-
-    def _create_count_chart(self, dimensions_result: str) -> None:
-        """Create a count chart."""
-        self.console.print(Panel(dimensions_result, title="Available Dimensions"))
-        
-        dimension = Prompt.ask("Enter the dimension name for count analysis")
-        
-        if dimension:
-            with self.console.status("[bold blue]Creating count chart..."):
-                result = self.agent.execute_tool_directly('create_visualization',
-                                                       analysis_type='count',
-                                                       dimension=dimension)
-            self.console.print(Panel(result, title="[green]Count Chart Created[/green]", border_style="green"))
-
-    def _create_aggregation_chart(self, analysis_type: str, measures_result: str, dimensions_result: str) -> None:
-        """Create an aggregation chart (sum or average)."""
-        self.console.print(Panel(measures_result, title="Available Measures"))
-        measure = Prompt.ask("Enter the measure name")
-        
-        if not measure:
-            return
-            
-        self.console.print(Panel(dimensions_result, title="Available Dimensions"))
-        dimension = Prompt.ask("Enter the dimension name for grouping")
-        
-        if dimension:
-            with self.console.status(f"[bold blue]Creating {analysis_type} chart..."):
-                result = self.agent.execute_tool_directly('create_visualization',
-                                                       analysis_type=analysis_type,
-                                                       measure=measure,
-                                                       dimension=dimension)
-            self.console.print(Panel(result, title=f"[green]{analysis_type.title()} Chart Created[/green]", border_style="green")) 
+ 

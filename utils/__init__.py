@@ -1,8 +1,6 @@
 """Utilities package for CSV Analysis Agent."""
 
-from .logger import CSVAgentLogger, get_logger
+# Utilities removed to simplify the codebase
+# Add new utility modules here as needed
 
-__all__ = [
-    "CSVAgentLogger",
-    "get_logger"
-] 
+__all__ = [] 
