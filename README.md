@@ -1,298 +1,298 @@
-# CSV Analysis Agent
+# 📊 CSV Analysis Agent
 
-A modular, object-oriented LLM-powered agent system for intelligent CSV data analysis with **beautiful web interface**. This system allows users to ask questions about CSV data using natural language and get accurate, data-driven responses.
+A powerful, AI-driven application for intelligent CSV data analysis with natural language queries. Upload your CSV files and chat with your data using OpenAI's latest models through a beautiful web interface or command-line interface.
 
-## 🎯 Features
+## 🌟 What This Application Does
 
-- **🌐 Beautiful Web Interface**: Modern Streamlit web application with drag & drop CSV upload
-- **🤖 Intelligent CSV Analysis**: Ask questions using natural language and get accurate responses
-- **🧠 LLM-Powered Analytics**: Automatic measure/dimension classification and intelligent insights
-- **💬 Conversational Memory**: Support for follow-up questions with conversation context
-- **🔧 Extensible Tool System**: Function calling with data analysis operations
-- **📈 Advanced Analytics**: Filtering, sorting, grouping and statistical analysis
-- **🎨 Multiple Interfaces**: Both web UI and CLI available
+The CSV Analysis Agent transforms how you interact with spreadsheet data by letting you:
 
-## 🚀 Quick Start
+- **🤖 Ask questions in plain English** about your CSV data
+- **📊 Get instant insights** with AI-powered analytics
+- **🔍 Filter, sort, and analyze** data using natural language
+- **💡 Discover patterns** with intelligent question suggestions
+- **📈 Generate statistics** and summaries automatically
+- **💬 Have conversations** with follow-up questions and context
 
-### 1. Installation
+**Example**: Instead of writing complex formulas, just ask *"What is the average salary by department?"* or *"Who are the top 5 performers in Engineering?"*
+
+## 🚀 Quick Start Guide
+
+### 1. Prerequisites
+
+- **Python 3.8+** installed on your system
+- **OpenAI API Key** (get one at [platform.openai.com](https://platform.openai.com))
+
+### 2. Installation
 
 ```bash
-# Clone the repository
+# Clone or download this repository
 git clone <repository-url>
 cd csv_analysis_agent
 
-# Create virtual environment
+# Create a virtual environment (recommended)
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Activate the virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install required packages
 pip install -r requirements.txt
 ```
 
-### 2. Configuration
+### 3. API Key Setup
 
-Set your OpenAI API key:
+**Option A: Create a .env file (Recommended)**
 
-```bash
-export OPENAI_API_KEY="your-api-key-here"
+1. Create a file named `.env` in the project root directory
+2. Add your OpenAI API key:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Or create a `.env` file:
+**Option B: Set environment variable**
 
 ```bash
-cp .env.example .env
-# Edit .env and add your API key
+# On macOS/Linux:
+export OPENAI_API_KEY="your_openai_api_key_here"
+
+# On Windows Command Prompt:
+set OPENAI_API_KEY=your_openai_api_key_here
+
+# On Windows PowerShell:
+$env:OPENAI_API_KEY="your_openai_api_key_here"
 ```
 
-### 3. Web Application (Recommended)
+> ⚠️ **Security Note**: Never share your API key or commit the `.env` file to version control. Keep your API key secure!
 
-#### Start the Web Interface:
+### 4. Running the Application
+
+#### 🌐 Web Interface (Recommended)
 
 ```bash
 python run_streamlit.py
 ```
 
-This will open a beautiful web interface in your browser where you can:
+This opens a beautiful web application in your browser where you can:
 
-- 📁 **Upload CSV files** with drag & drop
-- 📊 **View comprehensive dataset summaries** with analytics classification
-- 💬 **Chat with your data** using natural language
-- 📈 **Get intelligent insights** about measures vs dimensions
+1. **Select your preferred AI model** (GPT-4o, GPT-4o mini, GPT-4 Turbo, GPT-4 Preview)
+2. **Upload CSV files** with drag & drop
+3. **View automatic dataset analysis** with intelligent insights
+4. **Get AI-generated question suggestions** tailored to your data
+5. **Chat with your data** using natural language
 
-#### Web Features:
-- ✅ **File Upload**: Drag & drop CSV files
-- ✅ **Dataset Overview**: Comprehensive summary with statistics
-- ✅ **Analytics Classification**: Automatic measure/dimension identification
-- ✅ **Natural Language Chat**: Ask questions about your data
-- ✅ **Data Operations**: Filtering, sorting, grouping and aggregation
-
-### 4. Command Line Interface
-
-#### Interactive Mode
+#### 💻 Command Line Interface
 
 ```bash
-python app/main.py interactive --csv path/to/your/data.csv
+# Interactive mode
+python app/main.py interactive --csv your_data.csv
+
+# Single question mode
+python app/main.py analyze your_data.csv "What is the average salary by department?"
 ```
 
-**New CLI Commands:**
-- Type `analytics` to see measures vs dimensions classification
-- Ask natural language questions about your data
+## 🎯 Key Features
 
-#### Single Question
+### 🤖 **AI-Powered Analysis**
+- **Multiple OpenAI Models**: Choose from GPT-4o, GPT-4o mini, GPT-4 Turbo, or GPT-4 Preview
+- **Intelligent Question Suggestions**: AI generates insightful questions based on your specific dataset
+- **Natural Language Processing**: Ask questions in plain English and get accurate answers
+- **Context-Aware Conversations**: Follow-up questions remember previous context
+
+### 📊 **Comprehensive Data Operations**
+- **Statistical Analysis**: Automatic calculation of means, medians, distributions
+- **Data Filtering**: Find specific subsets of your data
+- **Multi-Column Sorting**: Sort by multiple criteria with custom order
+- **Grouping & Aggregation**: Group data by categories and calculate aggregates
+- **Missing Data Analysis**: Identify and analyze incomplete data
+
+### 🎨 **Beautiful User Interface**
+- **Modern Web Design**: Clean, intuitive Streamlit interface
+- **Drag & Drop Upload**: Easy CSV file handling
+- **Real-time Chat**: Interactive conversation with your data
+- **Clickable Suggestions**: One-click to ask AI-generated questions
+- **Visual Data Summary**: Comprehensive dataset overview
+
+### 🔧 **Developer-Friendly**
+- **Modular Architecture**: Clean, extensible codebase
+- **Multiple Interfaces**: Web UI, CLI, and programmatic API
+- **Comprehensive Testing**: Reliable and well-tested components
+- **Easy Configuration**: Simple setup with environment variables
+
+## 📝 Example Usage
+
+### Web Interface Example:
+
+1. **Upload** a CSV file (e.g., employee data, sales data, survey results)
+2. **Review** the automatic dataset summary and column analysis
+3. **Click** on AI-generated questions like:
+   - *"What is the average salary by department?"*
+   - *"Who has the highest performance rating?"*
+   - *"What is the age distribution by city?"*
+4. **Ask custom questions** like:
+   - *"Show me all engineers with more than 5 years experience"*
+   - *"What's the correlation between education level and salary?"*
+
+### CLI Example:
 
 ```bash
-python app/main.py analyze data.csv "What is the average salary per department?"
-```
-
-## 📊 Data Analysis Capabilities
-
-### Supported Operations:
-1. **📈 Statistical Analysis**: Get comprehensive statistics for numerical data
-2. **📊 Data Aggregation**: Group by categories and aggregate measures  
-3. **🔍 Data Filtering**: Filter data by column values
-4. **📋 Data Sorting**: Sort by multiple columns with custom order
-
-### Example Questions:
-- "What is the average salary per department?"
-- "Show me employees with the highest performance ratings"
-- "Filter employees by Engineering department"
-- "Sort employees by salary from highest to lowest"
-
-## 🏗️ Architecture
-
-The system is built with a modular, object-oriented design:
-
-### Core Classes
-
-1. **`CSVAgent`** - Main orchestrator that coordinates all components
-2. **`CSVLoader`** - Enhanced CSV loading with LLM-powered analytics classification
-3. **`MemoryManager`** - Manages conversation history and context
-4. **`ToolManager`** - Handles tool registration and execution
-5. **`AgentBuilder`** - Composes LLM, memory, tools and context into working agent
-6. **`StreamlitApp`** - Web interface for user interaction
-
-### Available Tools
-
-- `get_data_summary` - Comprehensive dataset overview
-- `get_column_info` - Detailed column information with LLM insights
-- `sort_data` - Sort data by multiple columns with custom order
-- `filter_data` - Filter data by column values
-- `group_and_aggregate` - Group by columns and aggregate measures
-- `get_basic_stats` - Statistical analysis for numeric columns
-- `get_analytics_classification` - Show measures vs dimensions
-- `list_measures` - List all numerical fields for aggregation
-- `list_dimensions` - List all categorical fields for grouping
-
-## 📋 Programmatic Usage
-
-```python
-from agents.csv_agent import CSVAgent
-from models.config import AgentConfig, LLMConfig
-
-# Initialize the agent
-config = AgentConfig(
-    llm=LLMConfig(model_name="gpt-4o-mini")
-)
-agent = CSVAgent(config)
-
-# Load CSV file
-result = agent.load_csv("data.csv")
-if result.success:
-    print(f"Loaded: {result.message}")
-    
-    # Get analytics classification
-    classification = agent.execute_tool_directly('get_analytics_classification')
-    print(classification)
-    
-    # Ask questions
-    response = agent.ask_question("What is the average salary by department?")
-    print(response.answer)
-    
-    # Group and aggregate data
-    result = agent.execute_tool_directly(
-        'group_and_aggregate',
-        group_by_columns='department',
-        aggregations='salary:average'
-    )
-    print(result)
-```
-
-## 🔧 Advanced Usage
-
-### Data Operations
-
-The system supports comprehensive data analysis operations:
-
-```python
-# Sort data by multiple columns
-agent.execute_tool_directly('sort_data', 
-                          sort_columns='department,salary', 
-                          sort_orders='asc,desc')
-
-# Filter data by values
-agent.execute_tool_directly('filter_data',
-                          column_name='department',
-                          values='Engineering,Sales')
-
-# Group and aggregate data
-agent.execute_tool_directly('group_and_aggregate',
-                          group_by_columns='department',
-                          aggregations='salary:average,years_experience:sum')
-```
-
-### Analytics Classification
-
-Get intelligent insights about your data structure:
-
-```python
-# Get measures (numerical fields for aggregation)
-measures = agent.csv_loader.get_measures()
-
-# Get dimensions (categorical fields for grouping)  
-dimensions = agent.csv_loader.get_dimensions()
-
-# Get full analytics summary
-summary = agent.csv_loader.get_analytics_summary()
-```
-
-## 📖 Example Session
-
-### Web Interface:
-1. Open `http://localhost:8501` 
-2. Enter your OpenAI API key
-3. Upload a CSV file
-4. View automatic dataset summary and analytics classification
-5. Chat with your data using natural language
-
-### CLI Interface:
-```
 $ python app/main.py interactive --csv employees.csv
 
 📊 CSV Analysis Agent
-Successfully loaded employees.csv (1000 rows × 8 columns)
+✅ Successfully loaded employees.csv (500 rows × 10 columns)
 
-🎯 Analytics Classification:
-📈 Measures: salary, performance_rating, years_experience  
-📂 Dimensions: employee_id, name, department, city, education_level
+🤖 AI Model: GPT-4o mini
+📈 Dataset Summary:
+   - Numerical columns: salary, age, years_experience, performance_rating
+   - Categorical columns: department, city, education_level
 
-💬 Ask a question: What is the average salary per department?
+💬 Ask a question: What is the average salary by department?
 
-📊 The average salary per department:
-- Engineering: $85,420
-- Marketing: $72,350  
-- Sales: $68,750
-- HR: $71,200
+📊 Analysis Results:
+Department-wise Average Salary:
+• Engineering: $85,420
+• Marketing: $72,350
+• Sales: $68,750
+• HR: $71,200
 
-💬 Ask a question: Show me employees in Engineering department
+💬 Ask a question: Show me the top 3 highest paid employees
 
-🔍 Found 250 employees in Engineering department:
-- Average salary: $85,420
-- Average experience: 6.2 years
-- Performance rating range: 3.2 - 4.9
-- Education levels: 60% Master, 35% Bachelor, 5% PhD
+🔍 Top 3 Highest Paid Employees:
+1. Frank Miller (Engineering): $95,000
+2. Uma Clark (Engineering): $92,000
+3. Paul Anderson (Sales): $88,000
 ```
 
-## 🧪 Testing
+## 🛠️ Advanced Configuration
 
-The project includes comprehensive tests:
+### Model Selection
+
+Choose your preferred OpenAI model based on your needs:
+
+- **GPT-4o mini** (Default): Fast and cost-effective, great for most analyses
+- **GPT-4o**: More powerful reasoning for complex queries
+- **GPT-4 Turbo**: Enhanced performance for large datasets
+- **GPT-4 Preview**: Latest features and capabilities
+
+### Programmatic Usage
+
+```python
+from agents.csv_agent import CSVAgent
+from models.config import AgentConfig, LLMConfig, OpenAIModel
+
+# Configure the agent
+config = AgentConfig(
+    llm=LLMConfig(
+        model_name=OpenAIModel.GPT_4O_MINI.value,
+        api_key="your_api_key_here"  # or use environment variable
+    )
+)
+
+# Initialize and use the agent
+agent = CSVAgent(config)
+result = agent.load_csv("your_data.csv")
+
+if result.success:
+    # Ask questions
+    response = agent.ask_question("What is the summary of this data?")
+    print(response.answer)
+    
+    # Get intelligent question suggestions
+    suggestions = agent.suggest_questions()
+    for question in suggestions:
+        print(f"💡 {question}")
+```
+
+## 🔧 Available Data Operations
+
+| Operation | Description | Example Question |
+|-----------|-------------|------------------|
+| **Statistical Analysis** | Calculate means, medians, std dev | *"What are the basic statistics for salary?"* |
+| **Filtering** | Find specific data subsets | *"Show me all employees in Engineering"* |
+| **Sorting** | Order data by columns | *"Sort employees by salary, highest first"* |
+| **Grouping** | Group and aggregate data | *"Average salary by department and city"* |
+| **Top/Bottom Analysis** | Find extremes | *"Who are the top 5 performers?"* |
+| **Distribution Analysis** | Understand data spread | *"What's the age distribution?"* |
+| **Missing Data** | Identify incomplete records | *"How much data is missing?"* |
+
+## 🧪 Testing Your Setup
+
+Test the installation with the included sample data:
 
 ```bash
-# Test basic functionality
-python test_agent.py
+# Test web interface
+python run_streamlit.py
+# Then upload sample_data.csv in the web interface
 
-# Test analytics classification
-python test_analytics_classification.py
+# Test CLI
+python app/main.py analyze sample_data.csv "How many employees are there?"
 ```
+
+## 🔐 Security & Privacy
+
+- **Local Processing**: Your CSV data is processed locally and not stored permanently
+- **API Security**: Only question text is sent to OpenAI, not your raw data
+- **Environment Variables**: Keep API keys secure using `.env` files
+- **Session-Based**: Web interface data is cleared when you close the browser
+
+## 🚨 Troubleshooting
+
+### Common Issues:
+
+**"OpenAI API key not found"**
+- Ensure your `.env` file exists and contains `OPENAI_API_KEY=your_key`
+- Check that the `.env` file is in the project root directory
+
+**"Module not found" errors**
+- Make sure you activated your virtual environment
+- Run `pip install -r requirements.txt` again
+
+**"Permission denied" on macOS/Linux**
+- You might need to use `python3` instead of `python`
+
+**CSV upload issues**
+- Ensure your CSV file has headers
+- Check for special characters or encoding issues
+- Try saving your file as UTF-8 encoded CSV
 
 ## 📦 Dependencies
 
-### Core Dependencies:
-- **LangChain**: LLM integration and tool calling
-- **Pandas**: Data processing and analysis
-- **Pydantic**: Configuration and data validation
-- **Python-dotenv**: Environment variable management
+### Core Requirements:
+- `openai` - OpenAI API integration
+- `langchain` - LLM framework and tools
+- `pandas` - Data manipulation and analysis
+- `streamlit` - Web interface framework
+- `typer` - Command-line interface
+- `pydantic` - Data validation and settings
+- `python-dotenv` - Environment variable management
 
-### Web Dependencies:
-- **Streamlit**: Web application framework
+## 🤝 Contributing
 
-### CLI Dependencies:
-- **Rich**: Beautiful CLI formatting
-- **Typer**: Command-line interface
+This project uses a modular architecture that's easy to extend:
 
-## 🔐 Security Notes
+- **Add new tools**: Create new analysis functions in `core/tool_manager.py`
+- **Enhance UI**: Modify the Streamlit interface in `app/streamlit_app.py`
+- **Improve prompts**: Update AI prompts in respective manager classes
+- **Add model support**: Extend model options in `models/config.py`
 
-- Never commit your `.env` file to version control
-- Keep your API key secure and rotate it regularly  
-- The web app only stores data in memory during the session
+## 📚 Learn More
 
-## 🚀 What's New
-
-### Latest Features:
-- ✅ **Streamlit Web Interface**: Beautiful drag & drop CSV upload
-- ✅ **LLM-Powered Analytics**: Automatic measure/dimension classification
-- ✅ **Enhanced Search**: Now finds numeric IDs and values correctly
-- ✅ **Multi-parameter Tools**: Sorting, filtering and grouping operations
-- ✅ **Comprehensive Summaries**: Rich dataset overviews with statistics
-- ✅ **Follow-up Questions**: Intelligent conversation context handling
-
-### Recent Fixes:
-- 🐛 Fixed search functionality for numeric columns (employee IDs now work!)
-- 🐛 Fixed multi-parameter tool registration for filtering, sorting and grouping
-- 🐛 Resolved structured output warnings
-- 🐛 Enhanced error handling and validation
+- **OpenAI API Documentation**: [platform.openai.com/docs](https://platform.openai.com/docs)
+- **Streamlit Documentation**: [docs.streamlit.io](https://docs.streamlit.io)
+- **LangChain Documentation**: [python.langchain.com](https://python.langchain.com)
 
 ---
 
-**Ready to explore your data? Start with the web interface:**
+## 🎉 Ready to Get Started?
 
-```bash
-python run_streamlit.py
-```
+1. **Get your OpenAI API key** from [platform.openai.com](https://platform.openai.com)
+2. **Follow the setup instructions** above
+3. **Run the web interface**: `python run_streamlit.py`
+4. **Upload a CSV file** and start chatting with your data!
 
-**Or use the CLI for power users:**
+**Need help?** Check the troubleshooting section or create an issue on GitHub.
 
-```bash  
-python app/main.py interactive --csv your_data.csv
-```
-
-🎯 **Your CSV Analysis Agent is ready for intelligent business intelligence!** 📊🚀 
+🚀 **Happy Data Analysis!** 📊 
