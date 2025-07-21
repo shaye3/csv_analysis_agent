@@ -17,7 +17,7 @@ from rich import print as rprint
 from dotenv import load_dotenv
 
 from agents.csv_agent import CSVAgent
-from models.config import AgentConfig, LLMConfig
+from models.config import AgentConfig, LLMConfig, OpenAIModel
 from app.interface import CSVAgentInterface
 
 # Load environment variables
@@ -32,7 +32,8 @@ app = typer.Typer(help="CSV Analysis Agent - Intelligent CSV Analysis Assistant"
 def interactive(
     csv_file: Optional[str] = typer.Option(None, "--csv", "-c", help="CSV file to load"),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="OpenAI API key"),
-    model: str = typer.Option("gpt-4o-mini", "--model", "-m", help="LLM model to use"),
+    model: str = typer.Option(OpenAIModel.GPT_4O_MINI.value, "--model", "-m", 
+                              help=f"OpenAI model to use. Options: {', '.join([m.value for m in OpenAIModel])}"),
     temperature: float = typer.Option(0.1, "--temperature", "-t", help="LLM temperature"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output")
 ):
@@ -41,6 +42,12 @@ def interactive(
         "[bold blue]CSV Analysis Agent[/bold blue]\nIntelligent CSV Analysis Assistant", 
         title="Welcome"
     ))
+    
+    # Validate model choice
+    valid_models = [m.value for m in OpenAIModel]
+    if model not in valid_models:
+        console.print(f"[red]Error: Invalid model '{model}'. Choose from: {', '.join(valid_models)}[/red]")
+        raise typer.Exit(1)
     
     # Create configuration
     config = AgentConfig(
@@ -81,10 +88,17 @@ def analyze(
     csv_file: str = typer.Argument(..., help="CSV file to analyze"),
     question: str = typer.Argument(..., help="Question to ask about the data"),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="OpenAI API key"),
-    model: str = typer.Option("gpt-4o-mini", "--model", "-m", help="LLM model to use"),
+    model: str = typer.Option(OpenAIModel.GPT_4O_MINI.value, "--model", "-m", 
+                              help=f"OpenAI model to use. Options: {', '.join([m.value for m in OpenAIModel])}"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output")
 ):
     """Analyze CSV file with a single question."""
+    # Validate model choice
+    valid_models = [m.value for m in OpenAIModel]
+    if model not in valid_models:
+        console.print(f"[red]Error: Invalid model '{model}'. Choose from: {', '.join(valid_models)}[/red]")
+        raise typer.Exit(1)
+    
     config = AgentConfig(
         llm=LLMConfig(
             model_name=model,

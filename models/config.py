@@ -17,6 +17,24 @@ class LLMProvider(str, Enum):
     LOCAL = "local"
 
 
+class OpenAIModel(str, Enum):
+    """Available OpenAI models for CSV analysis."""
+    GPT_4O = "gpt-4o"
+    GPT_4O_MINI = "gpt-4o-mini"
+    GPT_4_TURBO = "gpt-4-turbo"
+    GPT_4_PREVIEW = "gpt-4-1106-preview"
+    
+    @classmethod
+    def get_display_names(cls) -> dict:
+        """Get user-friendly display names for models."""
+        return {
+            cls.GPT_4O: "GPT-4o",
+            cls.GPT_4O_MINI: "GPT-4o mini",
+            cls.GPT_4_TURBO: "GPT-4 Turbo",
+            cls.GPT_4_PREVIEW: "GPT-4 Preview"
+        }
+
+
 class MemoryType(str, Enum):
     """Supported memory types."""
     BUFFER = "buffer"
@@ -27,7 +45,7 @@ class MemoryType(str, Enum):
 class LLMConfig(BaseModel):
     """Configuration for LLM settings."""
     provider: LLMProvider = LLMProvider.OPENAI
-    model_name: str = Field(default_factory=lambda: os.getenv("DEFAULT_MODEL", "gpt-4o-mini"))
+    model_name: str = Field(default=OpenAIModel.GPT_4O_MINI.value)
     temperature: float = Field(default_factory=lambda: float(os.getenv("DEFAULT_TEMPERATURE", "0.1")), ge=0.0, le=1.0)
     max_tokens: Optional[int] = None
     api_key: Optional[str] = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))

@@ -14,6 +14,7 @@ from io import StringIO
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.csv_agent import CSVAgent
+from models.config import AgentConfig, LLMConfig, OpenAIModel
 
 def init_session_state():
     """Initialize session state variables."""
@@ -23,6 +24,8 @@ def init_session_state():
         st.session_state.messages = []
     if 'csv_uploaded' not in st.session_state:
         st.session_state.csv_uploaded = False
+    if 'selected_model' not in st.session_state:
+        st.session_state.selected_model = OpenAIModel.GPT_4O_MINI.value
 
 def display_dataset_summary():
     """Display basic dataset information."""
@@ -97,6 +100,44 @@ def display_dataset_summary():
     except Exception as e:
         st.error(f"Error displaying dataset summary: {str(e)}")
 
+def display_model_selection():
+    """Display model selection interface."""
+    st.header("🤖 Choose Your AI Model")
+    
+    # Get available models and their display names
+    models = list(OpenAIModel)
+    display_names = OpenAIModel.get_display_names()
+    model_options = [display_names[model.value] for model in models]
+    
+    # Model selection
+    selected_display_name = st.selectbox(
+        "Select OpenAI Model:",
+        model_options,
+        index=model_options.index(display_names[OpenAIModel.GPT_4O_MINI.value]),  # Default to GPT-4o mini
+        help="Choose the AI model for analyzing your data. GPT-4o mini offers good performance at lower cost."
+    )
+    
+    # Find the corresponding model enum value
+    selected_model = None
+    for model in models:
+        if display_names[model.value] == selected_display_name:
+            selected_model = model
+            break
+    
+    # Store selected model in session state
+    st.session_state.selected_model = selected_model.value if selected_model else OpenAIModel.GPT_4O_MINI.value
+    
+    # Show model info
+    model_info = {
+        OpenAIModel.GPT_4O.value: "🚀 Most capable model with excellent reasoning",
+        OpenAIModel.GPT_4O_MINI.value: "⚡ Fast and cost-effective, great for most tasks",
+        OpenAIModel.GPT_4_TURBO.value: "🎯 High performance for complex analysis",
+        OpenAIModel.GPT_4_PREVIEW.value: "🔬 Preview version with latest features"
+    }
+    
+    if selected_model:
+        st.info(f"**{selected_display_name}**: {model_info.get(selected_model.value, 'Advanced AI model for data analysis')}")
+
 def handle_csv_upload():
     """Handle CSV file upload and agent initialization."""
     st.header("📁 Upload Your CSV File")
@@ -119,9 +160,11 @@ def handle_csv_upload():
                 with open(temp_filename, 'w', encoding='utf-8') as f:
                     f.write(stringio.getvalue())
                 
-                # Initialize agent and load CSV
-                from models.config import AgentConfig
-                config = AgentConfig()
+                # Initialize agent and load CSV with selected model
+                selected_model = getattr(st.session_state, 'selected_model', OpenAIModel.GPT_4O_MINI.value)
+                config = AgentConfig(
+                    llm=LLMConfig(model_name=selected_model)
+                )
                 st.session_state.agent = CSVAgent(config)
                 
                 # Load the CSV file
@@ -260,6 +303,11 @@ def main():
     
     # Main content area
     if not st.session_state.csv_uploaded:
+        # Show model selection
+        display_model_selection()
+        
+        st.markdown("---")
+        
         # Show upload interface
         handle_csv_upload()
         

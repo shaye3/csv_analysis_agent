@@ -7,6 +7,7 @@ from .config import (
     ToolConfig,
     CSVLoaderConfig,
     LLMProvider,
+    OpenAIModel,
     MemoryType
 )
 
@@ -28,6 +29,7 @@ __all__ = [
     "ToolConfig",
     "CSVLoaderConfig",
     "LLMProvider",
+    "OpenAIModel",
     "MemoryType",
     "CSVQuestionClassification",
     "ColumnInfo",
