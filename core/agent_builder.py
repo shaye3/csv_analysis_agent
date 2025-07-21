@@ -43,7 +43,7 @@ class AgentBuilder:
         self.csv_loader = CSVLoader(llm=self.llm_manager.get_llm())
         self.memory_manager = MemoryManagerFactory.create_memory_manager(config.memory)
         self.tool_manager = ToolManager(config.tools, self.csv_loader)
-        self.query_context = QueryContext(self.csv_loader)
+        self.query_context = QueryContext(self.csv_loader, self.llm_manager.get_llm())
         
         # Store comprehensive column context for intelligent query processing
         self._column_context = ""

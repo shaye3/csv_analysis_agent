@@ -246,6 +246,41 @@ def display_example_questions():
     for i, example in enumerate(examples, 1):
         st.markdown(f"**{i}.** {example}")
 
+def display_intelligent_questions():
+    """Display LLM-generated intelligent questions for the loaded dataset."""
+    st.subheader("🤖 Intelligent Questions for Your Data")
+    st.markdown("*AI-generated questions based on your dataset structure and content*")
+    
+    try:
+        with st.spinner("🤖 Generating intelligent questions..."):
+            suggestions = st.session_state.agent.suggest_questions()
+        
+        if suggestions and len(suggestions) > 1:
+            # Display in two columns for better layout
+            col1, col2 = st.columns(2)
+            
+            for i, question in enumerate(suggestions, 1):
+                # Alternate between columns
+                with col1 if i % 2 == 1 else col2:
+                    if st.button(f"**{i}.** {question}", key=f"suggestion_{i}", use_container_width=True):
+                        # Add question to chat
+                        st.session_state.messages.append({"role": "user", "content": question})
+                        
+                        # Generate response
+                        with st.spinner("🤔 Analyzing your question..."):
+                            query_response = st.session_state.agent.ask_question(question)
+                            response = query_response.answer
+                            st.session_state.messages.append({"role": "assistant", "content": response})
+                        
+                        # Rerun to show the new chat
+                        st.rerun()
+        else:
+            st.info("No intelligent suggestions available. Upload a CSV file to get personalized questions.")
+            
+    except Exception as e:
+        st.warning(f"Unable to generate intelligent questions: {str(e)}")
+        st.info("You can still ask questions manually in the chat interface.")
+
 def main():
     """Main Streamlit application."""
     # Page configuration
@@ -318,6 +353,11 @@ def main():
     else:
         # Show dataset summary
         display_dataset_summary()
+        
+        st.markdown("---")
+        
+        # Show intelligent questions for the dataset
+        display_intelligent_questions()
         
         st.markdown("---")
         
