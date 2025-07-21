@@ -26,6 +26,8 @@ def init_session_state():
         st.session_state.csv_uploaded = False
     if 'selected_model' not in st.session_state:
         st.session_state.selected_model = OpenAIModel.GPT_4O_MINI.value
+    if 'suggested_questions' not in st.session_state:
+        st.session_state.suggested_questions = []
 
 def display_dataset_summary():
     """Display basic dataset information."""
@@ -173,6 +175,7 @@ def handle_csv_upload():
                 if result.success:
                     st.session_state.csv_uploaded = True
                     st.session_state.messages = []  # Reset chat history
+                    st.session_state.suggested_questions = []  # Reset questions for new dataset
                     
                     # Clean up temporary file
                     os.remove(temp_filename)
@@ -227,59 +230,45 @@ def display_chat_interface():
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
-def display_example_questions():
-    """Display example questions users can ask."""
-    st.subheader("💡 Example Questions You Can Ask")
-    
-    examples = [
-        "What is the average value in column X?",
-        "How many rows contain missing data?",
-        "What are the unique values in column Y?",
-        "Show me summary statistics for the dataset",
-        "What is the maximum value in column Z?",
-        "How many records are there for each category?",
-        "What percentage of data is missing in column A?",
-        "Find records where column B equals a specific value"
-    ]
-    
-    # Display examples in a nice format
-    for i, example in enumerate(examples, 1):
-        st.markdown(f"**{i}.** {example}")
-
-def display_intelligent_questions():
+def display_suggested_questions():
     """Display LLM-generated intelligent questions for the loaded dataset."""
-    st.subheader("🤖 Intelligent Questions for Your Data")
+    st.subheader("💡 Intelligent Questions You Can Ask")
     st.markdown("*AI-generated questions based on your dataset structure and content*")
     
-    try:
-        with st.spinner("🤖 Generating intelligent questions..."):
-            suggestions = st.session_state.agent.suggest_questions()
+    # Generate questions if not already available
+    if st.session_state.agent and st.session_state.csv_uploaded and not st.session_state.suggested_questions:
+        try:
+            with st.spinner("🤖 Generating intelligent questions..."):
+                st.session_state.suggested_questions = st.session_state.agent.suggest_questions()
+        except Exception as e:
+            st.warning(f"Could not generate intelligent questions: {str(e)}")
+            st.info("You can still ask questions manually in the chat interface below.")
+            return
+    
+    # Display LLM-generated questions if available
+    if st.session_state.suggested_questions:
+        # Display in two columns for better layout
+        col1, col2 = st.columns(2)
         
-        if suggestions and len(suggestions) > 1:
-            # Display in two columns for better layout
-            col1, col2 = st.columns(2)
-            
-            for i, question in enumerate(suggestions, 1):
-                # Alternate between columns
-                with col1 if i % 2 == 1 else col2:
-                    if st.button(f"**{i}.** {question}", key=f"suggestion_{i}", use_container_width=True):
-                        # Add question to chat
-                        st.session_state.messages.append({"role": "user", "content": question})
-                        
-                        # Generate response
-                        with st.spinner("🤔 Analyzing your question..."):
-                            query_response = st.session_state.agent.ask_question(question)
-                            response = query_response.answer
-                            st.session_state.messages.append({"role": "assistant", "content": response})
-                        
-                        # Rerun to show the new chat
-                        st.rerun()
-        else:
-            st.info("No intelligent suggestions available. Upload a CSV file to get personalized questions.")
-            
-    except Exception as e:
-        st.warning(f"Unable to generate intelligent questions: {str(e)}")
-        st.info("You can still ask questions manually in the chat interface.")
+        for i, question in enumerate(st.session_state.suggested_questions, 1):
+            # Alternate between columns
+            with col1 if i % 2 == 1 else col2:
+                if st.button(f"**{i}.** {question}", key=f"suggestion_{i}", use_container_width=True):
+                    # Add question to chat
+                    st.session_state.messages.append({"role": "user", "content": question})
+                    
+                    # Generate response
+                    with st.spinner("🤔 Analyzing your question..."):
+                        query_response = st.session_state.agent.ask_question(question)
+                        response = query_response.answer
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+                    
+                    # Rerun to show the new chat
+                    st.rerun()
+    else:
+        st.info("Unable to generate intelligent questions. You can ask questions manually in the chat interface below.")
+
+
 
 def main():
     """Main Streamlit application."""
@@ -346,10 +335,6 @@ def main():
         # Show upload interface
         handle_csv_upload()
         
-        # Show example questions when no file is uploaded
-        st.markdown("---")
-        display_example_questions()
-        
     else:
         # Show dataset summary
         display_dataset_summary()
@@ -357,7 +342,7 @@ def main():
         st.markdown("---")
         
         # Show intelligent questions for the dataset
-        display_intelligent_questions()
+        display_suggested_questions()
         
         st.markdown("---")
         
@@ -370,6 +355,7 @@ def main():
             st.session_state.csv_uploaded = False
             st.session_state.agent = None
             st.session_state.messages = []
+            st.session_state.suggested_questions = []
             st.rerun()
 
 if __name__ == "__main__":
