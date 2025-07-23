@@ -26,7 +26,7 @@ The CSV Analysis Agent transforms how you interact with spreadsheet data by lett
 
 ```bash
 # Clone or download this repository
-git clone <repository-url>
+git clone https://github.com/shaye3/csv_analysis_agent.git
 cd csv_analysis_agent
 
 # Create a virtual environment (recommended)
@@ -126,23 +126,33 @@ python app/main.py analyze your_data.csv "What is the average salary by departme
 
 ### Web Interface Example:
 
-1. **Upload** a CSV file (e.g., employee data, sales data, survey results)
+1. **Upload** a CSV file (try the included `sample_data.csv` or `sales_data.csv`)
 2. **Review** the automatic dataset summary and column analysis
 3. **Click** on AI-generated questions like:
+
+**For Employee Data (`sample_data.csv`):**
    - *"What is the average salary by department?"*
    - *"Who has the highest performance rating?"*
    - *"What is the age distribution by city?"*
+
+**For Sales Data (`sales_data.csv`):**
+   - *"What is the total revenue by sales region?"*
+   - *"Which product category has the highest average order value?"*
+   - *"Who are the top 5 sales reps by revenue?"*
+
 4. **Ask custom questions** like:
-   - *"Show me all engineers with more than 5 years experience"*
-   - *"What's the correlation between education level and salary?"*
+   - *"Show me all orders above $5000"*
+   - *"What's the monthly sales trend?"*
+   - *"Compare Enterprise vs SMB customer segments"*
 
 ### CLI Example:
 
+**Employee Data Analysis:**
 ```bash
-$ python app/main.py interactive --csv employees.csv
+$ python app/main.py interactive --csv sample_data.csv
 
 📊 CSV Analysis Agent
-✅ Successfully loaded employees.csv (500 rows × 10 columns)
+✅ Successfully loaded sample_data.csv (30 rows × 10 columns)
 
 🤖 AI Model: GPT-4o mini
 📈 Dataset Summary:
@@ -153,17 +163,31 @@ $ python app/main.py interactive --csv employees.csv
 
 📊 Analysis Results:
 Department-wise Average Salary:
-• Engineering: $85,420
-• Marketing: $72,350
-• Sales: $68,750
-• HR: $71,200
+• Engineering: $79,800
+• HR: $74,400  
+• Marketing: $66,125
+• Sales: $71,429
+```
 
-💬 Ask a question: Show me the top 3 highest paid employees
+**Sales Data Analysis:**
+```bash
+$ python app/main.py interactive --csv sales_data.csv
 
-🔍 Top 3 Highest Paid Employees:
-1. Frank Miller (Engineering): $95,000
-2. Uma Clark (Engineering): $92,000
-3. Paul Anderson (Sales): $88,000
+📊 CSV Analysis Agent  
+✅ Successfully loaded sales_data.csv (50 rows × 11 columns)
+
+🤖 AI Model: GPT-4o mini
+📈 Dataset Summary:
+   - Numerical columns: quantity, unit_price, total_amount
+   - Categorical columns: customer_name, product_category, sales_region, customer_segment
+
+💬 Ask a question: What is the total revenue by sales region?
+
+📊 Analysis Results:
+Revenue by Sales Region:
+• North America: $71,904
+• Europe: $47,700
+• Asia Pacific: $46,349
 ```
 
 ## 🛠️ Advanced Configuration
@@ -220,15 +244,23 @@ if result.success:
 
 ## 🧪 Testing Your Setup
 
-Test the installation with the included sample data:
+The application includes two sample datasets to help you get started:
+
+- **`sample_data.csv`** - Employee data with salary, performance, departments, and demographics
+- **`sales_data.csv`** - Sales/e-commerce data with orders, customers, products, and revenue
+
+Test the installation with either dataset:
 
 ```bash
 # Test web interface
 python run_streamlit.py
-# Then upload sample_data.csv in the web interface
+# Then upload either sample_data.csv (employee data) or sales_data.csv (sales data)
 
-# Test CLI
+# Test CLI with employee data
 python app/main.py analyze sample_data.csv "How many employees are there?"
+
+# Test CLI with sales data  
+python app/main.py analyze sales_data.csv "What is the total revenue by region?"
 ```
 
 ## 🔐 Security & Privacy
